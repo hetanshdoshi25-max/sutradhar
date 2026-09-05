@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUTRADHAR</title>
+<script src="/static/lib/vis-network.min.js"></script>
+<style>
+  :root{
+    --bg:#0b1120; --panel:#151e33; --panel2:#1c2942; --line:#26324d;
+    --cyan:#22d3ee; --amber:#fbbf24; --text:#e8ecf5; --mute:#8a94ad; --white:#fff;
+  }
+  *{box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+  html{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);height:100%;display:flex;flex-direction:column;overflow:hidden}
+  header{padding:14px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex:0 0 auto}
+  header h1{margin:0;font-size:20px;letter-spacing:1px}
+  header h1 span{color:var(--cyan)}
+  header .tag{font-size:11px;color:var(--mute);border:1px solid var(--line);padding:3px 8px;border-radius:20px}
+  main{flex:1;display:flex;min-height:0;overflow:hidden}
+  .left{width:340px;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .left .scroll{overflow-y:auto;padding:16px;flex:1}
+  .right{flex:1;position:relative;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  #graph{flex:1;min-height:0;position:relative}
+  #graph .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mute);font-size:13px;pointer-events:none}
+  h2{font-size:12px;letter-spacing:1.5px;color:var(--cyan);margin:0 0 10px}
+  .persona{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px}
+  .persona input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:6px 8px;margin-bottom:6px;font-size:13px}
+  .persona textarea{width:100%;height:70px;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:6px 8px;font-size:12px;resize:vertical}
+  .wc{font-size:10px;margin-top:4px;color:var(--mute);display:flex;justify-content:space-between}
+  .wc .warn{color:var(--amber)}
+  .persona .del{float:right;color:var(--mute);cursor:pointer;font-size:14px;border:none;background:none}
+  .btnrow{display:flex;gap:8px;margin-bottom:14px}
+  button.act{flex:1;background:var(--cyan);color:#04222b;border:none;border-radius:6px;padding:10px;font-weight:700;cursor:pointer;font-size:13px}
+  button.ghost{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:10px;cursor:pointer;font-size:13px}
+  .thresh{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mute);margin-bottom:14px}
+  .thresh input{flex:1}
+  #report{flex:0 0 auto;height:180px;border-top:1px solid var(--line);padding:14px 16px;overflow-y:auto}
+  .attr{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:6px;padding:10px;margin-bottom:8px;font-size:13px}
+  .attr b{color:var(--amber)}
+  .attr .conf{color:var(--cyan);font-weight:700}
+  .empty{color:var(--mute);font-size:12px}
+  #evidence{position:absolute;top:14px;right:14px;width:250px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-size:12px;display:none}
+  #evidence h3{margin:0 0 8px;font-size:13px;color:var(--white)}
+  .bar{margin:6px 0}
+  .bar .lbl{display:flex;justify-content:space-between;color:var(--mute);margin-bottom:2px}
+  .bar .track{height:7px;background:var(--panel2);border-radius:4px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--cyan);border-radius:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>SUTRADHAR<span>.</span></h1>
+  <span class="tag">Investigation Console — authorized use</span>
+</header>
+
+<main>
+  <div class="left">
+    <div class="scroll">
+      <div class="btnrow">
+        <button class="act" onclick="analyze()">Analyze ▶</button>
+        <button class="ghost" onclick="loadSample()">Load sample</button>
+      </div>
+      <button class="ghost" style="width:100%;margin-bottom:14px" onclick="exportPDF()">⤓ Export case file (PDF)</button>
+      <div class="thresh">
+        <span>Link threshold</span>
+        <input type="range" min="0.4" max="0.8" step="0.01" value="0.55"
+               id="thr" oninput="thrv.textContent=this.value">
+        <span id="thrv">0.55</span>
+      </div>
+      <h2>PERSONAS</h2>
+      <div id="personas"></div>
+      <button class="ghost" style="width:100%" onclick="addPersona('','','',true)">+ Add person</button>
+      <button class="ghost" style="width:100%;margin-top:6px" onclick="clearAll()">Clear all</button>
+    </div>
+  </div>
+
+  <div class="right">
+    <div id="graph"><div class="ph">Load sample, then press Analyze ▶ to draw the graph</div></div>
+    <div id="evidence"></div>
+    <div id="report">
+      <h2>ATTRIBUTION REPORT</h2>
+      <div id="attrs"><div class="empty">Run an analysis to see linked identities.</div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+let network=null, lastEdges=[];
+
+// ---------- persona input cards ----------
+function personaCard(alias="", site="", text="", hours=[]){
+  const d=document.createElement("div");
+  d.className="persona";
+  d.dataset.hours=JSON.stringify(hours||[]);
+  d.innerHTML=`
+    <button class="del" title="remove">✕</button>
+    <input class="alias" placeholder="alias / username" value="${esc(alias)}">
+    <input class="site" placeholder="site (optional)" value="${esc(site)}">
+    <textarea class="text" placeholder="paste this person's writing...">${esc(text)}</textarea>
+    <div class="wc"><span class="count">0 words</span><span class="hint"></span></div>`;
+  const ta=d.querySelector(".text"), cnt=d.querySelector(".count"), hint=d.querySelector(".hint");
+  const upd=()=>{const w=(ta.value.trim().match(/\S+/g)||[]).length;
+    cnt.textContent=w+" words";
+    hint.textContent = w<40 ? "write ~40+ for a reliable match" : "";
+    hint.className = w<40 ? "warn" : "";};
+  ta.addEventListener("input",upd); upd();
+  d.querySelector(".del").onclick=()=>d.remove();
+  return d;
+}
+function esc(s){return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");}
+function addPersona(a,s,t,focus,hours){
+  const card=personaCard(a,s,t,hours);
+  document.getElementById("personas").appendChild(card);
+  if(focus){
+    const ta=card.querySelector(".text");
+    card.scrollIntoView({behavior:"smooth",block:"center"});
+    ta.focus();
+  }
+}
+function clearAll(){
+  document.getElementById("personas").innerHTML="";
+  if(network){network.destroy();network=null;}
+  document.getElementById("attrs").innerHTML=`<div class="empty">Run an analysis to see linked identities.</div>`;
+  document.getElementById("evidence").style.display="none";
+  const g=document.getElementById("graph");
+  g.innerHTML=`<div class="ph">Add people, then press Analyze ▶ to draw the graph</div>`;
+}
+
+function collect(){
+  return [...document.querySelectorAll(".persona")].map(p=>({
+    alias:p.querySelector(".alias").value.trim()||"unknown",
+    site:p.querySelector(".site").value.trim(),
+    text:p.querySelector(".text").value.trim(),
+    hours:JSON.parse(p.dataset.hours||"[]")
+  })).filter(p=>p.text);
+}
+
+async function loadSample(){
+  document.getElementById("personas").innerHTML="";
+  const r=await fetch("/sample"); const d=await r.json();
+  d.personas.forEach(p=>addPersona(p.alias,p.site,p.text,false,p.hours));
+}
+
+// ---------- analyze + draw graph ----------
+async function analyze(){
+  const personas=collect();
+  if(personas.length<2){alert("Add at least two personas with text.");return;}
+  const threshold=parseFloat(document.getElementById("thr").value);
+  const r=await fetch("/analyze",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({personas,threshold})});
+  const g=await r.json();
+  draw(g); report(g);
+}
+
+const CLUSTER_COLORS=["#22d3ee","#fbbf24","#a78bfa","#34d399","#f472b6","#60a5fa"];
+function draw(g){
+  lastEdges=g.edges;
+  const nodes=g.nodes.map(n=>({
+    id:n.id, label:n.alias, title:n.site,
+    color:{background:CLUSTER_COLORS[(n.cluster||0)%CLUSTER_COLORS.length],border:"#0b1120"},
+    font:{color:"#e8ecf5",face:"Segoe UI",size:15,strokeWidth:4,strokeColor:"#0b1120",vadjust:2},
+    shape:"dot", size:24, borderWidth:2
+  }));
+  const edges=g.edges.map((e,i)=>({
+    id:i, from:e.source, to:e.target,
+    label:(e.score*100).toFixed(0)+"%",
+    width:2+(e.score-0.5)*10,
+    color:{color:"#22d3ee",highlight:"#fbbf24"},
+    font:{color:"#e8ecf5",size:12,strokeWidth:0,background:"#0b1120"},
+    smooth:{type:"continuous"}
+  }));
+  const data={nodes:new vis.DataSet(nodes),edges:new vis.DataSet(edges)};
+  const options={
+    physics:{barnesHut:{gravitationalConstant:-4000,springLength:150},stabilization:{iterations:120}},
+    interaction:{hover:true}
+  };
+  const c=document.getElementById("graph");
+  const ph=c.querySelector('.ph'); if(ph) ph.remove();
+  if(network) network.destroy();
+  network=new vis.Network(c,data,options);
+  network.once('stabilizationIterationsDone',()=>network.fit({animation:true}));
+  network.on("selectEdge",p=>showEvidence(p.edges[0]));
+  network.on("deselectEdge",()=>document.getElementById("evidence").style.display="none");
+}
+window.addEventListener('resize',()=>{ if(network) network.fit(); });
+
+function showEvidence(edgeId){
+  const e=lastEdges[edgeId]; if(!e)return;
+  const ev=e.evidence;
+  const box=document.getElementById("evidence");
+  const bar=(label,v)=>`<div class="bar"><div class="lbl"><span>${label}</span><span>${(v*100).toFixed(0)}%</span></div>
+    <div class="track"><div class="fill" style="width:${v*100}%"></div></div></div>`;
+  const sub=t=>`<div style="font-size:10px;letter-spacing:1px;color:var(--mute);margin:10px 0 4px">${t}</div>`;
+
+  let html=`<h3>Why they linked</h3>`;
+  html+=sub("WRITING STYLE");
+  html+=bar("Character n-grams",ev.char_ngrams);
+  html+=bar("Function words",ev.function_words);
+  html+=bar("Style ratios",ev.style_ratios);
+  if(ev.activity_pattern!==undefined){
+    html+=sub("ACTIVITY PATTERN");
+    html+=bar("Active-hours overlap",ev.activity_pattern);
+    if(ev.peak_windows){
+      html+=`<div style="font-size:10px;color:var(--mute);margin-top:2px">both active ${ev.peak_windows[0]}</div>`;
+    }
+  }
+  html+=`<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px;color:var(--mute)">Blended score <b style="color:var(--cyan)">${(e.score*100).toFixed(0)}%</b></div>`;
+  box.innerHTML=html;
+  box.style.display="block";
+}
+
+function report(g){
+  const box=document.getElementById("attrs");
+  if(!g.attributions||!g.attributions.length){
+    box.innerHTML=`<div class="empty">No links above threshold. Lower it or add more text.</div>`;return;}
+  box.innerHTML=g.attributions.map(a=>
+    `<div class="attr"><b>${a.aliases.map(esc).join(" = ")}</b> &nbsp;·&nbsp;
+      <span class="conf">${(a.confidence*100).toFixed(0)}% confidence</span><br>
+      <span style="color:var(--mute);font-size:11px">Suspected single author across ${a.aliases.length} aliases</span></div>`
+  ).join("");
+}
+
+async function exportPDF(){
+  const personas=collect();
+  if(personas.length<2){alert("Add at least two personas with text.");return;}
+  const threshold=parseFloat(document.getElementById("thr").value);
+  const r=await fetch("/report/pdf",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({personas,threshold})});
+  if(!r.ok){alert("Could not generate the report.");return;}
+  const blob=await r.blob();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="sutradhar_case_file.pdf"; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// start with sample loaded
+loadSample();
+</script>
+</body>
+</html>
