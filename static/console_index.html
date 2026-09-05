@@ -215,7 +215,7 @@ function report(g){
   if(!g.attributions||!g.attributions.length){
     box.innerHTML=`<div class="empty">No links above threshold. Lower it or add more text.</div>`;return;}
   box.innerHTML=g.attributions.map(a=>
-    `<div class="attr"><b>${a.aliases.join(" = ")}</b> &nbsp;·&nbsp;
+    `<div class="attr"><b>${a.aliases.map(esc).join(" = ")}</b> &nbsp;·&nbsp;
       <span class="conf">${(a.confidence*100).toFixed(0)}% confidence</span><br>
       <span style="color:var(--mute);font-size:11px">Suspected single author across ${a.aliases.length} aliases</span></div>`
   ).join("");

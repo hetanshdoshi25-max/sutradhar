@@ -1,0 +1,39 @@
+# ---- Secrets & environment (never commit these) ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*_rsa
+*_rsa.pub
+serviceAccountKey.json
+*service-account*.json
+secrets.*
+credentials.*
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ---- Node / JS ----
+node_modules/
+dist/
+build/
+.next/
+.cache/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# ---- OS / editor junk ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
