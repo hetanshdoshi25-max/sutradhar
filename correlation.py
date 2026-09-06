@@ -11,12 +11,15 @@ from stylometry import StylometryEngine
 from temporal import temporal_similarity, peak_window
 from persona_reuse import extract_identifiers, reuse_similarity, human
 from opsec import exposure_profile
+from crypto_flow import crypto_link, crypto_trail
 
 # weight of each signal in the blended score (normalised over the ones present)
-W_STYLE = 0.5      # writing style (stylometry)
+W_STYLE = 0.45     # writing style (stylometry)
 W_TEMPORAL = 0.2   # activity pattern (temporal)
-W_REUSE = 0.3      # shared hard identifiers (persona reuse)
+W_REUSE = 0.2      # shared hard identifiers (persona reuse)
+W_CRYPTO = 0.15    # shared wallet / wallet cluster (crypto flow)
 REUSE_FLOOR = 0.85 # a shared PGP key/wallet/handle is strong evidence on its own
+CRYPTO_FLOOR = 0.8 # a shared wallet cluster is strong evidence too
 
 
 def _clusters(n, edges):
@@ -46,7 +49,8 @@ def build_graph(personas, threshold=0.55):
 
     nodes = [
         {"id": i, "alias": p["alias"], "site": p.get("site", ""),
-         "exposure": exposure_profile(p.get("text", ""))}
+         "exposure": exposure_profile(p.get("text", "")),
+         "crypto": crypto_trail(p.get("text", ""))}
         for i, p in enumerate(personas)
     ]
 
@@ -77,10 +81,19 @@ def build_graph(personas, threshold=0.55):
                 evidence["persona_reuse"] = round(reuse_score, 3)
                 evidence["shared_identifiers"] = [human(s) for s in shared]
 
+            # crypto flow: shared wallet or same wallet-cluster
+            c_score, c_why = crypto_link(personas[i].get("text", ""), personas[j].get("text", ""))
+            if c_why:
+                comps.append((c_score, W_CRYPTO))
+                evidence["crypto_flow"] = round(c_score, 3)
+                evidence["crypto_detail"] = c_why
+
             wsum = sum(w for _, w in comps)
             score = sum(s * w for s, w in comps) / wsum
             if shared:                       # hard identifier -> strong floor
                 score = max(score, REUSE_FLOOR)
+            if c_why:                        # shared wallet/cluster -> strong floor
+                score = max(score, CRYPTO_FLOOR)
 
             if score >= threshold:
                 edges.append({

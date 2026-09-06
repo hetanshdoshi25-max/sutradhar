@@ -115,6 +115,14 @@ def build_report_pdf(graph, personas, threshold, case_id=None):
             si = ev.get("shared_identifiers")
             if si:
                 rows.append(["Reused identifier", ", ".join(si)])
+        if "crypto_flow" in ev:
+            rows.append(["Crypto wallet link", _pct(ev["crypto_flow"])])
+            cd = ev.get("crypto_detail") or {}
+            if cd:
+                line = f"{cd.get('kind','')} {cd.get('detail','')}"
+                if cd.get("cashout"):
+                    line += f"  (cash-out: {cd['cashout']['vasp']})"
+                rows.append(["Wallet trail", line])
         t = Table(rows, colWidths=[70 * mm, 40 * mm])
         t.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), NAVY),
