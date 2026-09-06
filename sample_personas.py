@@ -25,7 +25,7 @@ PERSONAS = [
             "them have no reviews and the other half just copy paste the same "
             "description. ngl i wouldnt trust it. been around long enough to know "
             "when something feels off and this feels off. anyway just my two cents "
-            "do what you want with it lol"
+            "do what you want with it lol. hit me on tg @vendmirror if u need the list"
         ),
     },
     {
@@ -36,7 +36,7 @@ PERSONAS = [
             "basically the mirror been down for like three days now... tbh im not "
             "even surprised at this point. ngl the admins keep saying its fixed but "
             "then it breaks again. been checking every morning and nothing. anyway "
-            "if anyone has a working link drop it here i guess lol"
+            "if anyone has a working link drop it here i guess lol. same as always @vendmirror on tg"
         ),
     },
     {
@@ -49,7 +49,7 @@ PERSONAS = [
             "Furthermore, several established members have raised legitimate concerns "
             "regarding delivery times. However, one must acknowledge that isolated "
             "incidents do not necessarily indicate systemic failure. I recommend "
-            "reviewing the archived threads before forming a conclusion."
+            "reviewing the archived threads before forming a conclusion. For verification, my PGP is 0x9F3A21BC."
         ),
     },
     {
@@ -62,7 +62,7 @@ PERSONAS = [
             "administration has not clarified how disputes will be handled under the "
             "new terms. However, if implemented transparently, it could improve trust "
             "considerably. I would suggest that members request written clarification "
-            "before endorsing the update."
+            "before endorsing the update. Signed messages carry PGP key 0x9F3A21BC as always."
         ),
     },
     {
@@ -73,7 +73,7 @@ PERSONAS = [
             "YO this drop is INSANE!! grabbed mine already and its FIRE!! honestly "
             "cant believe the price!! everyone sleeping on this seller BIG mistake!! "
             "restock coming friday DONT miss it!! trust me on this one!! best i seen "
-            "all year FR"
+            "all year FR. dm me 9876543210 or vyprdeals@proton.me for early access"
         ),
     },
 ]

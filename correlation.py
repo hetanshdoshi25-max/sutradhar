@@ -9,10 +9,14 @@ Output is a plain dict, ready to hand to the web frontend as JSON.
 
 from stylometry import StylometryEngine
 from temporal import temporal_similarity, peak_window
+from persona_reuse import extract_identifiers, reuse_similarity, human
+from opsec import exposure_profile
 
-# how much each top-level signal counts toward the final score
-W_STYLE = 0.7      # writing style (stylometry)
-W_TEMPORAL = 0.3   # activity pattern (temporal), when available
+# weight of each signal in the blended score (normalised over the ones present)
+W_STYLE = 0.5      # writing style (stylometry)
+W_TEMPORAL = 0.2   # activity pattern (temporal)
+W_REUSE = 0.3      # shared hard identifiers (persona reuse)
+REUSE_FLOOR = 0.85 # a shared PGP key/wallet/handle is strong evidence on its own
 
 
 def _clusters(n, edges):
@@ -41,25 +45,42 @@ def build_graph(personas, threshold=0.55):
     n = len(texts)
 
     nodes = [
-        {"id": i, "alias": p["alias"], "site": p.get("site", "")}
+        {"id": i, "alias": p["alias"], "site": p.get("site", ""),
+         "exposure": exposure_profile(p.get("text", ""))}
         for i, p in enumerate(personas)
     ]
+
+    # pre-extract hard identifiers once per persona (from their text)
+    ids = [extract_identifiers(p.get("text", "")) for p in personas]
 
     edges = []
     for i in range(n):
         for j in range(i + 1, n):
             style_score, groups = eng.similarity(i, j)
-
-            # temporal signal only if BOTH personas carry posting hours
-            hi, hj = personas[i].get("hours"), personas[j].get("hours")
             evidence = {k: round(v, 3) for k, v in groups.items()}
+
+            # weighted components — a signal only counts when it applies
+            comps = [(style_score, W_STYLE)]
+
+            # temporal: only if BOTH personas carry posting hours
+            hi, hj = personas[i].get("hours"), personas[j].get("hours")
             if hi and hj:
                 t = temporal_similarity(hi, hj)
-                score = W_STYLE * style_score + W_TEMPORAL * t
+                comps.append((t, W_TEMPORAL))
                 evidence["activity_pattern"] = round(t, 3)
                 evidence["peak_windows"] = [peak_window(hi), peak_window(hj)]
-            else:
-                score = style_score  # fall back to stylometry alone
+
+            # persona reuse: only counts when a hard identifier is actually shared
+            reuse_score, shared = reuse_similarity(ids[i], ids[j])
+            if shared:
+                comps.append((reuse_score, W_REUSE))
+                evidence["persona_reuse"] = round(reuse_score, 3)
+                evidence["shared_identifiers"] = [human(s) for s in shared]
+
+            wsum = sum(w for _, w in comps)
+            score = sum(s * w for s, w in comps) / wsum
+            if shared:                       # hard identifier -> strong floor
+                score = max(score, REUSE_FLOOR)
 
             if score >= threshold:
                 edges.append({

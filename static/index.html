@@ -86,7 +86,7 @@
 </main>
 
 <script>
-let network=null, lastEdges=[];
+let network=null, lastEdges=[], lastNodes=[];
 
 // ---------- persona input cards ----------
 function personaCard(alias="", site="", text="", hours=[]){
@@ -155,7 +155,7 @@ async function analyze(){
 
 const CLUSTER_COLORS=["#22d3ee","#fbbf24","#a78bfa","#34d399","#f472b6","#60a5fa"];
 function draw(g){
-  lastEdges=g.edges;
+  lastEdges=g.edges; lastNodes=g.nodes;
   const nodes=g.nodes.map(n=>({
     id:n.id, label:n.alias, title:n.site,
     color:{background:CLUSTER_COLORS[(n.cluster||0)%CLUSTER_COLORS.length],border:"#0b1120"},
@@ -181,7 +181,9 @@ function draw(g){
   network=new vis.Network(c,data,options);
   network.once('stabilizationIterationsDone',()=>network.fit({animation:true}));
   network.on("selectEdge",p=>showEvidence(p.edges[0]));
+  network.on("selectNode",p=>showExposure(p.nodes[0]));
   network.on("deselectEdge",()=>document.getElementById("evidence").style.display="none");
+  network.on("deselectNode",()=>document.getElementById("evidence").style.display="none");
 }
 window.addEventListener('resize',()=>{ if(network) network.fit(); });
 
@@ -205,7 +207,36 @@ function showEvidence(edgeId){
       html+=`<div style="font-size:10px;color:var(--mute);margin-top:2px">both active ${ev.peak_windows[0]}</div>`;
     }
   }
+  if(ev.persona_reuse!==undefined){
+    html+=sub("PERSONA REUSE");
+    html+=bar("Shared identifier",ev.persona_reuse);
+    if(ev.shared_identifiers){
+      html+=`<div style="font-size:10px;color:var(--amber);margin-top:3px">⚑ ${ev.shared_identifiers.join(", ")}</div>`;
+    }
+  }
   html+=`<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px;color:var(--mute)">Blended score <b style="color:var(--cyan)">${(e.score*100).toFixed(0)}%</b></div>`;
+  box.innerHTML=html;
+  box.style.display="block";
+}
+
+function showExposure(nodeId){
+  const n=lastNodes[nodeId]; if(!n||!n.exposure)return;
+  const ex=n.exposure;
+  const box=document.getElementById("evidence");
+  const colors={Critical:"#f2555a",High:"#fbbf24",Medium:"#22d3ee",Low:"#8a94ad",None:"#8a94ad"};
+  const c=colors[ex.level]||"#8a94ad";
+  let html=`<h3>${n.alias} — OPSEC exposure</h3>`;
+  html+=`<div style="display:inline-block;font-size:11px;font-weight:700;color:${c};border:1px solid ${c};border-radius:20px;padding:3px 10px;margin-bottom:8px">${ex.level} risk</div>`;
+  if(!ex.items.length){
+    html+=`<div style="color:var(--mute);font-size:12px">No identifiers or contact details leaked in this persona's text.</div>`;
+  } else {
+    html+=`<div style="font-size:10px;letter-spacing:1px;color:var(--mute);margin:6px 0 4px">LEAKED IN TEXT</div>`;
+    ex.items.forEach(it=>{
+      html+=`<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:5px 0">
+        <span style="color:var(--mute)">${it.label}</span>
+        <span style="color:var(--text);font-weight:600;word-break:break-all">${it.value}</span></div>`;
+    });
+  }
   box.innerHTML=html;
   box.style.display="block";
 }
@@ -218,7 +249,8 @@ function report(g){
     `<div class="attr"><b>${a.aliases.map(esc).join(" = ")}</b> &nbsp;·&nbsp;
       <span class="conf">${(a.confidence*100).toFixed(0)}% confidence</span><br>
       <span style="color:var(--mute);font-size:11px">Suspected single author across ${a.aliases.length} aliases</span></div>`
-  ).join("");
+  ).join("")
+    + `<div style="color:var(--mute);font-size:11px;margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Click a <b style="color:var(--cyan)">link</b> for its evidence, or a <b style="color:var(--amber)">node</b> for its OPSEC exposure.</div>`;
 }
 
 async function exportPDF(){

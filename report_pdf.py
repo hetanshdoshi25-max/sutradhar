@@ -110,6 +110,11 @@ def build_report_pdf(graph, personas, threshold, case_id=None):
             pw = ev.get("peak_windows")
             if pw:
                 rows.append(["Peak active window", f"{pw[0]}  /  {pw[1]}"])
+        if "persona_reuse" in ev:
+            rows.append(["Shared identifier match", _pct(ev["persona_reuse"])])
+            si = ev.get("shared_identifiers")
+            if si:
+                rows.append(["Reused identifier", ", ".join(si)])
         t = Table(rows, colWidths=[70 * mm, 40 * mm])
         t.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), NAVY),
@@ -131,11 +136,12 @@ def build_report_pdf(graph, personas, threshold, case_id=None):
 
     # ---- persona index ----
     story.append(Paragraph("4 &nbsp; Personas examined", st["Sec"]))
-    prows = [["Alias", "Site", "Words"]]
+    prows = [["Alias", "Site", "Words", "OPSEC risk"]]
     for i, n in enumerate(nodes):
         words = len((personas[i].get("text", "").split()))
-        prows.append([n["alias"], n.get("site", "") or "-", str(words)])
-    pt = Table(prows, colWidths=[55 * mm, 55 * mm, 25 * mm])
+        risk = n.get("exposure", {}).get("level", "-")
+        prows.append([n["alias"], n.get("site", "") or "-", str(words), risk])
+    pt = Table(prows, colWidths=[45 * mm, 45 * mm, 20 * mm, 25 * mm])
     pt.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), TEAL),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
