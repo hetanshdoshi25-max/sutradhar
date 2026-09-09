@@ -21,6 +21,8 @@ from pathlib import Path
 
 from correlation import build_graph
 from report_pdf import build_report_pdf
+from username_enum import enumerate_username
+from identity_lookup import identity_lookup
 from sample_personas import PERSONAS
 
 app = FastAPI(title="SUTRADHAR")
@@ -40,6 +42,26 @@ class Persona(BaseModel):
 class AnalyzeRequest(BaseModel):
     personas: list[Persona]
     threshold: float = 0.55
+
+
+class EnumRequest(BaseModel):
+    handle: str
+
+
+class LookupRequest(BaseModel):
+    value: str
+
+
+@app.post("/lookup")
+def lookup(req: LookupRequest):
+    """Identity lookup: email -> Gravatar profile, phone -> carrier/region."""
+    return identity_lookup(req.value)
+
+
+@app.post("/enumerate")
+def enumerate_handle(req: EnumRequest):
+    """Check a username across public platforms (passive OSINT)."""
+    return enumerate_username(req.handle)
 
 
 @app.post("/analyze")

@@ -12,14 +12,17 @@ from temporal import temporal_similarity, peak_window
 from persona_reuse import extract_identifiers, reuse_similarity, human
 from opsec import exposure_profile
 from crypto_flow import crypto_link, crypto_trail
+from infra import infra_link, infra_trail
 
 # weight of each signal in the blended score (normalised over the ones present)
-W_STYLE = 0.45     # writing style (stylometry)
+W_STYLE = 0.4      # writing style (stylometry)
 W_TEMPORAL = 0.2   # activity pattern (temporal)
 W_REUSE = 0.2      # shared hard identifiers (persona reuse)
-W_CRYPTO = 0.15    # shared wallet / wallet cluster (crypto flow)
+W_CRYPTO = 0.1     # shared wallet / wallet cluster (crypto flow)
+W_INFRA = 0.1      # shared server / onion fingerprint (infrastructure)
 REUSE_FLOOR = 0.85 # a shared PGP key/wallet/handle is strong evidence on its own
 CRYPTO_FLOOR = 0.8 # a shared wallet cluster is strong evidence too
+INFRA_FLOOR = 0.82 # a shared server (fingerprint match) is strong evidence too
 
 
 def _clusters(n, edges):
@@ -50,7 +53,8 @@ def build_graph(personas, threshold=0.55):
     nodes = [
         {"id": i, "alias": p["alias"], "site": p.get("site", ""),
          "exposure": exposure_profile(p.get("text", "")),
-         "crypto": crypto_trail(p.get("text", ""))}
+         "crypto": crypto_trail(p.get("text", "")),
+         "infra": infra_trail(p.get("text", ""))}
         for i, p in enumerate(personas)
     ]
 
@@ -88,12 +92,21 @@ def build_graph(personas, threshold=0.55):
                 evidence["crypto_flow"] = round(c_score, 3)
                 evidence["crypto_detail"] = c_why
 
+            # infrastructure: shared onion service or same server-cluster
+            i_score, i_why = infra_link(personas[i].get("text", ""), personas[j].get("text", ""))
+            if i_why:
+                comps.append((i_score, W_INFRA))
+                evidence["infra"] = round(i_score, 3)
+                evidence["infra_detail"] = i_why
+
             wsum = sum(w for _, w in comps)
             score = sum(s * w for s, w in comps) / wsum
             if shared:                       # hard identifier -> strong floor
                 score = max(score, REUSE_FLOOR)
             if c_why:                        # shared wallet/cluster -> strong floor
                 score = max(score, CRYPTO_FLOOR)
+            if i_why:                        # shared server -> strong floor
+                score = max(score, INFRA_FLOOR)
 
             if score >= threshold:
                 edges.append({

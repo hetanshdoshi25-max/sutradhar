@@ -72,6 +72,20 @@
       <div id="personas"></div>
       <button class="ghost" style="width:100%" onclick="addPersona('','','',true)">+ Add person</button>
       <button class="ghost" style="width:100%;margin-top:6px" onclick="clearAll()">Clear all</button>
+
+      <h2 style="margin-top:22px">PUBLIC FOOTPRINT <span style="color:var(--mute);font-weight:400;letter-spacing:0">(OSINT)</span></h2>
+      <div style="display:flex;gap:6px">
+        <input id="fpHandle" placeholder="@username" style="flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:7px 9px;font-size:13px">
+        <button class="ghost" style="padding:7px 12px" onclick="scanFootprint()">Scan</button>
+      </div>
+      <div id="fpResults" style="margin-top:8px"></div>
+
+      <h2 style="margin-top:22px">IDENTITY LOOKUP <span style="color:var(--mute);font-weight:400;letter-spacing:0">(email / phone)</span></h2>
+      <div style="display:flex;gap:6px">
+        <input id="idValue" placeholder="email or +91..." style="flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:7px 9px;font-size:13px">
+        <button class="ghost" style="padding:7px 12px" onclick="idLookup()">Look up</button>
+      </div>
+      <div id="idResults" style="margin-top:8px"></div>
     </div>
   </div>
 
@@ -223,6 +237,15 @@ function showEvidence(edgeId){
       if(cd.cashout) html+=`<div style="font-size:10px;color:var(--mute);margin-top:2px">cash-out: ${cd.cashout.vasp} (${cd.cashout.type})</div>`;
     }
   }
+  if(ev.infra!==undefined){
+    html+=sub("INFRASTRUCTURE");
+    html+=bar("Server match",ev.infra);
+    const id=ev.infra_detail;
+    if(id){
+      html+=`<div style="font-size:10px;color:var(--amber);margin-top:3px">⚑ ${id.kind} ${id.detail}</div>`;
+      if(id.clearnet_ip) html+=`<div style="font-size:10px;color:var(--mute);margin-top:2px">clearnet IP: ${id.clearnet_ip}</div>`;
+    }
+  }
   html+=`<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px;color:var(--mute)">Blended score <b style="color:var(--cyan)">${(e.score*100).toFixed(0)}%</b></div>`;
   box.innerHTML=html;
   box.style.display="block";
@@ -257,6 +280,17 @@ function showExposure(nodeId){
       html+=`</div>`;
     });
   }
+  if(n.infra && n.infra.length){
+    html+=`<div style="font-size:10px;letter-spacing:1px;color:var(--mute);margin:12px 0 4px">INFRASTRUCTURE</div>`;
+    n.infra.forEach(inf=>{
+      html+=`<div style="font-size:11px;margin:6px 0"><span style="color:var(--text);word-break:break-all">${inf.onion}</span>`;
+      if(inf.clearnet_ip){
+        html+=`<div style="color:#f2555a;font-size:10px;margin-top:2px">→ ${inf.clearnet_ip} · ${inf.provider}</div>`;
+        html+=`<div style="color:var(--mute);font-size:10px">via ${inf.match}</div>`;
+      } else { html+=`<div style="color:var(--mute);font-size:10px;margin-top:2px">→ no fingerprint match</div>`; }
+      html+=`</div>`;
+    });
+  }
   box.innerHTML=html;
   box.style.display="block";
 }
@@ -285,6 +319,57 @@ async function exportPDF(){
   const a=document.createElement("a");
   a.href=url; a.download="sutradhar_case_file.pdf"; a.click();
   URL.revokeObjectURL(url);
+}
+
+async function scanFootprint(){
+  const h=document.getElementById("fpHandle").value.trim();
+  const box=document.getElementById("fpResults");
+  if(!h){box.innerHTML=`<div style="color:var(--mute);font-size:11px">Enter a username to scan.</div>`;return;}
+  box.innerHTML=`<div style="color:var(--mute);font-size:11px">Scanning public platforms…</div>`;
+  try{
+    const r=await fetch("/enumerate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({handle:h})});
+    const d=await r.json();
+    if(!d.valid){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Invalid username.</div>`;return;}
+    const dot=e=> e===true?"#7ee0a6": e===false?"#4a5568":"#fbbf24";
+    const lab=e=> e===true?"found": e===false?"—":"blocked";
+    box.innerHTML=`<div style="font-size:10px;color:var(--mute);margin-bottom:5px">${d.found_count} public profile(s) for <b style="color:var(--text)">${d.handle}</b></div>`+
+      d.results.map(x=>`<div style="display:flex;align-items:center;gap:7px;font-size:12px;margin:4px 0">
+        <span style="width:8px;height:8px;border-radius:50%;background:${dot(x.exists)};display:inline-block;flex:none"></span>
+        ${x.exists===true?`<a href="${x.url}" target="_blank" style="color:var(--cyan);text-decoration:none">${x.platform}</a>`:`<span style="color:var(--mute)">${x.platform}</span>`}
+        <span style="margin-left:auto;color:var(--mute);font-size:10px">${lab(x.exists)}</span></div>`).join("");
+  }catch(e){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Scan failed.</div>`;}
+}
+
+async function idLookup(){
+  const v=document.getElementById("idValue").value.trim();
+  const box=document.getElementById("idResults");
+  if(!v){box.innerHTML=`<div style="color:var(--mute);font-size:11px">Enter an email or phone (+country code).</div>`;return;}
+  box.innerHTML=`<div style="color:var(--mute);font-size:11px">Looking up…</div>`;
+  const row=(k,val)=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0"><span style="color:var(--mute)">${k}</span><span style="color:var(--text);font-weight:600;word-break:break-all">${val}</span></div>`;
+  try{
+    const r=await fetch("/lookup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({value:v})});
+    const d=await r.json();
+    if(d.kind==="phone"){
+      if(!d.valid){box.innerHTML=`<div style="color:var(--amber);font-size:11px">${d.error||"Invalid number. Include country code (+91...)."}</div>`;return;}
+      box.innerHTML=row("Valid","yes")+row("Region",d.region||"—")+row("Carrier",d.carrier||"—")+row("Line type",d.line_type||"—")+row("Timezone",(d.timezones||[]).join(", ")||"—");
+    } else if(d.kind==="email"){
+      let h=row("Username guess",d.username_guess);
+      const g=d.gravatar||{};
+      if(g.found){
+        h+=`<div style="font-size:10px;letter-spacing:1px;color:#7ee0a6;margin:8px 0 4px">GRAVATAR PROFILE FOUND</div>`;
+        if(g.photo) h+=`<img src="${g.photo}" style="width:52px;height:52px;border-radius:8px;margin-bottom:6px" onerror="this.style.display='none'">`;
+        if(g.name) h+=row("Name",g.name);
+        if(g.location) h+=row("Location",g.location);
+        (g.accounts||[]).forEach(a=>{ h+=`<div style="font-size:12px;margin:4px 0"><a href="${a.url}" target="_blank" style="color:var(--cyan);text-decoration:none">${a.service||a.url}</a>${a.verified?' <span style="color:#7ee0a6">✓</span>':''}</div>`; });
+        if(!(g.accounts||[]).length) h+=`<div style="font-size:11px;color:var(--mute)">No linked accounts listed.</div>`;
+      } else {
+        h+=`<div style="font-size:11px;color:var(--mute);margin-top:6px">No public Gravatar profile. Try the username guess in the footprint scan above.</div>`;
+      }
+      box.innerHTML=h;
+    } else {
+      box.innerHTML=`<div style="color:var(--amber);font-size:11px">${d.error||"Enter an email or phone number."}</div>`;
+    }
+  }catch(e){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Lookup failed.</div>`;}
 }
 
 // start with sample loaded

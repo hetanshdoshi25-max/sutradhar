@@ -123,6 +123,14 @@ def build_report_pdf(graph, personas, threshold, case_id=None):
                 if cd.get("cashout"):
                     line += f"  (cash-out: {cd['cashout']['vasp']})"
                 rows.append(["Wallet trail", line])
+        if "infra" in ev:
+            rows.append(["Infrastructure match", _pct(ev["infra"])])
+            idt = ev.get("infra_detail") or {}
+            if idt:
+                line = f"{idt.get('kind','')} {idt.get('detail','')}"
+                if idt.get("clearnet_ip"):
+                    line += f"  (clearnet: {idt['clearnet_ip']})"
+                rows.append(["Server trail", line])
         t = Table(rows, colWidths=[70 * mm, 40 * mm])
         t.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), NAVY),

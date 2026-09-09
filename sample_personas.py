@@ -25,7 +25,7 @@ PERSONAS = [
             "them have no reviews and the other half just copy paste the same "
             "description. ngl i wouldnt trust it. been around long enough to know "
             "when something feels off and this feels off. anyway just my two cents "
-            "do what you want with it lol. hit me on tg @vendmirror if u need the list. payments to bc1qs4f0x9k2m3n8p7q6r5t4v3w2x1y0z9a8b7c6d"
+            "do what you want with it lol. hit me on tg @vendmirror if u need the list. payments to bc1qs4f0x9k2m3n8p7q6r5t4v3w2x1y0z9a8b7c6d. mirror abcdefghijklmnop.onion"
         ),
     },
     {
@@ -36,7 +36,7 @@ PERSONAS = [
             "basically the mirror been down for like three days now... tbh im not "
             "even surprised at this point. ngl the admins keep saying its fixed but "
             "then it breaks again. been checking every morning and nothing. anyway "
-            "if anyone has a working link drop it here i guess lol. same as always @vendmirror on tg. escrow bc1qn1ghtcr4wl3r7h8j9k0l1m2n3o4p5q6r7s8t"
+            "if anyone has a working link drop it here i guess lol. same as always @vendmirror on tg. escrow bc1qn1ghtcr4wl3r7h8j9k0l1m2n3o4p5q6r7s8t. backup qrstuvwxyzabcdef.onion"
         ),
     },
     {
