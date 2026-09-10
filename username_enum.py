@@ -23,31 +23,35 @@ UA = "Mozilla/5.0 (compatible; SUTRADHAR-OSINT/1.0)"
 # check (missing_text = substring present when NOT found; found_text = substring
 # present when found). check = URL we query, url = human profile link.
 PLATFORMS = [
-    # --- developer / tech (reliable 404) ---
-    {"name": "GitHub",     "check": "https://api.github.com/users/{u}", "url": "https://github.com/{u}"},
+    {"name": "GitHub",     "check": "https://github.com/{u}",           "url": "https://github.com/{u}"},
     {"name": "GitLab",     "check": "https://gitlab.com/{u}",           "url": "https://gitlab.com/{u}"},
-    {"name": "Reddit",     "check": "https://www.reddit.com/user/{u}/about.json", "url": "https://www.reddit.com/user/{u}"},
+    {"name": "Reddit",     "check": "https://old.reddit.com/user/{u}/", "url": "https://www.reddit.com/user/{u}"},
     {"name": "Keybase",    "check": "https://keybase.io/{u}",           "url": "https://keybase.io/{u}"},
     {"name": "Dev.to",     "check": "https://dev.to/{u}",               "url": "https://dev.to/{u}"},
     {"name": "Replit",     "check": "https://replit.com/@{u}",          "url": "https://replit.com/@{u}"},
     {"name": "Pastebin",   "check": "https://pastebin.com/u/{u}",       "url": "https://pastebin.com/u/{u}"},
     {"name": "HackerNews", "check": "https://news.ycombinator.com/user?id={u}",
      "url": "https://news.ycombinator.com/user?id={u}", "missing_text": "No such user."},
-    # --- social / media (may be blocked -> shown as 'blocked') ---
-    {"name": "Instagram",  "check": "https://www.instagram.com/{u}/",   "url": "https://www.instagram.com/{u}/"},
-    {"name": "TikTok",     "check": "https://www.tiktok.com/@{u}",      "url": "https://www.tiktok.com/@{u}"},
+    {"name": "TikTok",     "check": "https://www.tiktok.com/@{u}",      "url": "https://www.tiktok.com/@{u}",
+     "missing_text": "couldn't find this account"},
     {"name": "YouTube",    "check": "https://www.youtube.com/@{u}",     "url": "https://www.youtube.com/@{u}"},
     {"name": "X / Twitter","check": "https://x.com/{u}",                "url": "https://x.com/{u}"},
-    {"name": "Facebook",   "check": "https://www.facebook.com/{u}",     "url": "https://www.facebook.com/{u}"},
     {"name": "Telegram",   "check": "https://t.me/{u}",                 "url": "https://t.me/{u}", "found_text": "tgme_page_title"},
-    {"name": "Twitch",     "check": "https://m.twitch.tv/{u}",          "url": "https://www.twitch.tv/{u}"},
+    {"name": "Twitch",     "check": "https://m.twitch.tv/{u}",          "url": "https://www.twitch.tv/{u}",
+     "missing_text": "unless you've got a time machine"},
     {"name": "Steam",      "check": "https://steamcommunity.com/id/{u}","url": "https://steamcommunity.com/id/{u}",
-     "missing_text": "The specified profile could not be found"},
-    {"name": "Pinterest",  "check": "https://www.pinterest.com/{u}/",   "url": "https://www.pinterest.com/{u}/"},
+     "missing_text": "the specified profile could not be found"},
+    {"name": "Pinterest",  "check": "https://www.pinterest.com/{u}/",   "url": "https://www.pinterest.com/{u}/",
+     "missing_text": "can't find that page"},
     {"name": "SoundCloud", "check": "https://soundcloud.com/{u}",       "url": "https://soundcloud.com/{u}"},
     {"name": "Linktree",   "check": "https://linktr.ee/{u}",            "url": "https://linktr.ee/{u}"},
     {"name": "Medium",     "check": "https://medium.com/@{u}",          "url": "https://medium.com/@{u}"},
 ]
+
+# platforms that gate behind a login wall and cannot be reliably checked
+# without authentication - always reported as inconclusive rather than
+# risking a false "found".
+UNRELIABLE = {"Instagram", "Facebook"}
 
 HANDLE_RE = re.compile(r"^@?([A-Za-z0-9_.-]{2,32})$")
 
@@ -58,6 +62,8 @@ def _clean(handle):
 
 
 def _check_one(plat, user, timeout):
+    if plat["name"] in UNRELIABLE:
+        return {"platform": plat["name"], "url": plat["url"].format(u=user), "exists": None}
     check = plat["check"].format(u=user)
     req = urllib.request.Request(check, headers={"User-Agent": UA})
     need_body = bool(plat.get("missing_text") or plat.get("found_text"))
