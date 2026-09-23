@@ -81,7 +81,7 @@ class StylometryEngine:
         # Group 1: character n-grams (2-3 chars). 'char_wb' keeps word
         # boundaries, capturing how someone starts/ends words and spaces.
         self.char_vec = TfidfVectorizer(
-            analyzer="char_wb", ngram_range=(2, 3), min_df=1, lowercase=True
+            analyzer="char_wb", ngram_range=(2, 4), min_df=1, lowercase=True, sublinear_tf=True
         )
         # Group 2: function-word rates, as a fixed vocabulary count vectoriser.
         self.func_vec = TfidfVectorizer(

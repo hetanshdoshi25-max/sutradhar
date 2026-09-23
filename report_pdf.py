@@ -126,6 +126,15 @@ SIGNAL_THEORY = [
      "methodology (e.g., the 2013 Silk Road server identification). The present prototype operates against "
      "a representative reference ledger; production deployment would integrate live Shodan/Censys/OnionScan "
      "telemetry."),
+    ("7. Evasion Confidence Assessment (Meta-Signal)",
+     "Where the preceding six signals evaluate what a persona has left behind, this meta-signal evaluates "
+     "the inverse: the degree to which a persona exhibits deliberate anti-forensic discipline. Three "
+     "indicators are assessed - the absence of any leaked identifier despite substantial text volume; "
+     "abnormally low variance in sentence length, consistent with deliberate stylistic neutralization or "
+     "AI-assisted rewriting; and near-zero variance in posting-hour distribution, consistent with scheduled "
+     "or automated posting rather than organic human activity. The system treats elevated discipline itself "
+     "as an investigative signal: a persona scored 'Professional' on this metric warrants prioritized "
+     "attention as a likely trained operator, independent of whether it links to any other persona."),
 ]
 
 
@@ -239,12 +248,13 @@ def build_report_pdf(graph, personas, threshold, case_id=None):
         f"The following {len(nodes)} persona(s) were submitted for analysis. Word count reflects the "
         f"volume of text available per persona; the OPSEC risk rating reflects the outcome of the "
         f"exposure-assessment process described in Section 3.4.", st["Body"]))
-    prows = [["#", "Alias", "Site / Source", "Words", "OPSEC Risk"]]
+    prows = [["#", "Alias", "Site / Source", "Words", "OPSEC Risk", "Evasion"]]
     for i, n in enumerate(nodes):
         words = len((personas[i].get("text", "").split()))
         risk = n.get("exposure", {}).get("level", "-")
-        prows.append([str(i + 1), n["alias"], n.get("site", "") or "-", str(words), risk])
-    pt = Table(prows, colWidths=[10 * mm, 38 * mm, 45 * mm, 20 * mm, 27 * mm])
+        evasion = n.get("evasion", {}).get("level", "-")
+        prows.append([str(i + 1), n["alias"], n.get("site", "") or "-", str(words), risk, evasion])
+    pt = Table(prows, colWidths=[8 * mm, 32 * mm, 38 * mm, 16 * mm, 24 * mm, 22 * mm])
     pt.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), NAVY), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"), ("FONTSIZE", (0, 0), (-1, -1), 9),

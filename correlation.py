@@ -13,6 +13,7 @@ from persona_reuse import extract_identifiers, reuse_similarity, human
 from opsec import exposure_profile
 from crypto_flow import crypto_link, crypto_trail
 from infra import infra_link, infra_trail
+from evasion import evasion_profile
 
 # weight of each signal in the blended score (normalised over the ones present)
 W_STYLE = 0.4      # writing style (stylometry)
@@ -54,7 +55,8 @@ def build_graph(personas, threshold=0.55):
         {"id": i, "alias": p["alias"], "site": p.get("site", ""),
          "exposure": exposure_profile(p.get("text", "")),
          "crypto": crypto_trail(p.get("text", "")),
-         "infra": infra_trail(p.get("text", ""))}
+         "infra": infra_trail(p.get("text", "")),
+         "evasion": evasion_profile(p.get("text", ""), p.get("hours"))}
         for i, p in enumerate(personas)
     ]
 

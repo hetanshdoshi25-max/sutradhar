@@ -18,16 +18,16 @@ def build_json_export(graph, threshold, case_id=None):
 
 
 def build_csv_export(graph):
-    """One row per attributed pair (edge) with a flattened evidence summary -
-    the 'result set' in a spreadsheet-friendly format."""
+    """One row per attributed pair (edge) with a flattened evidence summary,
+    plus each node's evasion-discipline level - the 'result set' in a
+    spreadsheet-friendly format."""
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(["alias_a", "alias_b", "confidence_pct", "signals_matched",
                "shared_identifiers", "crypto_cashout", "infra_clearnet_ip",
-               "peak_window_a", "peak_window_b"])
+               "peak_window_a", "peak_window_b", "evasion_a", "evasion_b"])
     for e in graph["edges"]:
-        a = graph["nodes"][e["source"]]["alias"]
-        b = graph["nodes"][e["target"]]["alias"]
+        na, nb = graph["nodes"][e["source"]], graph["nodes"][e["target"]]
         ev = e["evidence"]
         signals = [k for k in ("char_ngrams", "function_words", "style_ratios",
                                "activity_pattern", "persona_reuse", "crypto_flow", "infra") if k in ev]
@@ -35,8 +35,9 @@ def build_csv_export(graph):
         cashout = (ev.get("crypto_detail") or {}).get("cashout", {}).get("vasp", "")
         clear_ip = (ev.get("infra_detail") or {}).get("clearnet_ip", "")
         pw = ev.get("peak_windows", ["", ""])
-        w.writerow([a, b, round(e["score"] * 100, 1), "|".join(signals),
-                   shared, cashout, clear_ip, pw[0], pw[1]])
+        w.writerow([na["alias"], nb["alias"], round(e["score"] * 100, 1), "|".join(signals),
+                   shared, cashout, clear_ip, pw[0], pw[1],
+                   na.get("evasion", {}).get("level", ""), nb.get("evasion", {}).get("level", "")])
     return buf.getvalue().encode("utf-8")
 
 

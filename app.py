@@ -26,12 +26,35 @@ from username_enum import enumerate_username
 from identity_lookup import identity_lookup
 import audit_log
 import monitor
+import crawler as crawler_mod
 from sample_personas import PERSONAS
+import threading
+import http.server
+import socketserver
+import functools
 
 app = FastAPI(title="SUTRADHAR")
 
 BASE = Path(__file__).parent
 STATIC = BASE / "static"
+SIMSITE = BASE / "simsite"
+SIMSITE_PORT = 8010
+
+# --- start the simulated hidden-service target on its own port, once ---
+class _ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+def _serve_simsite():
+    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(SIMSITE))
+    try:
+        with _ReusableTCPServer(("127.0.0.1", SIMSITE_PORT), handler) as httpd:
+            httpd.serve_forever()
+    except OSError:
+        pass  # already running (e.g. hot-reload) - fine, reuse the existing one
+
+threading.Thread(target=_serve_simsite, daemon=True).start()
+
+_crawl_state = {"running": False, "result": None, "pages": []}
 
 
 # ---- request/response shapes ----
@@ -149,6 +172,40 @@ def monitor_stop():
 @app.get("/monitor/status")
 def monitor_status():
     return monitor.status()
+
+
+@app.post("/crawl/start")
+def crawl_start():
+    """Run a real HTTP crawl against the simulated hidden-service target,
+    then feed every discovered post straight into the attribution pipeline."""
+    _crawl_state["running"] = True
+    _crawl_state["pages"] = []
+
+    def on_page(url, posts, error=None):
+        _crawl_state["pages"].append({
+            "url": url.replace(f"http://127.0.0.1:{SIMSITE_PORT}/", ""),
+            "posts_found": len(posts), "error": error,
+        })
+
+    try:
+        result = crawler_mod.crawl(f"http://127.0.0.1:{SIMSITE_PORT}/", on_page=on_page)
+    except Exception as e:
+        _crawl_state["running"] = False
+        return {"pages_crawled": 0, "posts_found": 0, "personas": [], "page_log": [],
+                "error": f"{type(e).__name__}: {e}"}
+
+    _crawl_state["running"] = False
+    _crawl_state["result"] = result
+    audit_log.record("live_crawl",
+        f"{result['pages_crawled']} pages crawled, {result['posts_found']} posts discovered")
+    return {"pages_crawled": result["pages_crawled"], "posts_found": result["posts_found"],
+            "personas": result["posts"], "page_log": _crawl_state["pages"]}
+
+
+@app.get("/crawl/status")
+def crawl_status():
+    return {"running": _crawl_state["running"], "last_result": _crawl_state["result"],
+            "page_log": _crawl_state["pages"]}
 
 
 @app.get("/")
