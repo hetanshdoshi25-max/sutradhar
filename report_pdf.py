@@ -91,6 +91,17 @@ SIGNAL_THEORY = [
      "computes pairwise cosine similarity across each family using a TF-IDF weighted vector space model. "
      "This approach is consistent with established forensic-linguistics methodology used in authorship "
      "verification research (cf. PAN-CLEF benchmark tasks)."),
+    ("2. Cognitive Fingerprint (Behavioural Reasoning Signature)",
+     "Surface stylometry can be defeated by an operator routing text through an AI rewriter, which alters "
+     "word choice while preserving the author's underlying reasoning. This signal therefore fingerprints "
+     "how a subject reasons rather than which words they select - a property substantially more robust to "
+     "paraphrase. Seven behavioural dimensions are measured as length-normalized rates: hedging versus "
+     "certainty language, causal-reasoning density, argumentative contrast, risk versus opportunity framing, "
+     "and deductive (conclusion-first) versus inductive (evidence-first) argument order. These form a "
+     "seven-dimensional behavioural vector compared by cosine similarity. This directly implements the "
+     "problem statement's requirement for behavioural profiling of rebranded or migrated personas, and is "
+     "offered as corroborating evidence explicitly more paraphrase-resistant than surface style, not as an "
+     "infallible indicator."),
     ("2. Temporal Behavioural Analysis",
      "Human activity follows circadian patterns that are difficult to consciously suppress. The system "
      "constructs a 24-hour posting-frequency histogram per persona and measures distributional overlap "
@@ -308,6 +319,8 @@ def build_report_pdf(graph, personas, threshold, case_id=None):
         rows.append(["Character n-gram similarity", _pct(ev.get("char_ngrams", 0))])
         rows.append(["Function-word similarity", _pct(ev.get("function_words", 0))])
         rows.append(["Style-ratio similarity", _pct(ev.get("style_ratios", 0))])
+        if "cognitive" in ev:
+            rows.append(["Cognitive-fingerprint similarity", _pct(ev["cognitive"])])
         if "activity_pattern" in ev:
             rows.append(["Temporal activity overlap", _pct(ev["activity_pattern"])])
             pw = ev.get("peak_windows")

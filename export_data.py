@@ -29,7 +29,7 @@ def build_csv_export(graph):
     for e in graph["edges"]:
         na, nb = graph["nodes"][e["source"]], graph["nodes"][e["target"]]
         ev = e["evidence"]
-        signals = [k for k in ("char_ngrams", "function_words", "style_ratios",
+        signals = [k for k in ("char_ngrams", "function_words", "style_ratios", "cognitive",
                                "activity_pattern", "persona_reuse", "crypto_flow", "infra") if k in ev]
         shared = ", ".join(ev.get("shared_identifiers", []))
         cashout = (ev.get("crypto_detail") or {}).get("cashout", {}).get("vasp", "")

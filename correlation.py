@@ -14,10 +14,12 @@ from opsec import exposure_profile
 from crypto_flow import crypto_link, crypto_trail
 from infra import infra_link, infra_trail
 from evasion import evasion_profile
+from cognitive import cognitive_similarity, cognitive_profile
 
 # weight of each signal in the blended score (normalised over the ones present)
-W_STYLE = 0.4      # writing style (stylometry)
-W_TEMPORAL = 0.2   # activity pattern (temporal)
+W_STYLE = 0.32     # writing style (stylometry) - surface
+W_COGNITIVE = 0.18 # behavioural reasoning fingerprint (paraphrase-robust)
+W_TEMPORAL = 0.18  # activity pattern (temporal)
 W_REUSE = 0.2      # shared hard identifiers (persona reuse)
 W_CRYPTO = 0.1     # shared wallet / wallet cluster (crypto flow)
 W_INFRA = 0.1      # shared server / onion fingerprint (infrastructure)
@@ -56,7 +58,8 @@ def build_graph(personas, threshold=0.55):
          "exposure": exposure_profile(p.get("text", "")),
          "crypto": crypto_trail(p.get("text", "")),
          "infra": infra_trail(p.get("text", "")),
-         "evasion": evasion_profile(p.get("text", ""), p.get("hours"))}
+         "evasion": evasion_profile(p.get("text", ""), p.get("hours")),
+         "cognitive": cognitive_profile(p.get("text", ""))}
         for i, p in enumerate(personas)
     ]
 
@@ -71,6 +74,12 @@ def build_graph(personas, threshold=0.55):
 
             # weighted components — a signal only counts when it applies
             comps = [(style_score, W_STYLE)]
+
+            # cognitive fingerprint: behavioural reasoning similarity (always
+            # available from text; more paraphrase-robust than surface style)
+            cog = cognitive_similarity(personas[i].get("text", ""), personas[j].get("text", ""))
+            comps.append((cog, W_COGNITIVE))
+            evidence["cognitive"] = round(cog, 3)
 
             # temporal: only if BOTH personas carry posting hours
             hi, hj = personas[i].get("hours"), personas[j].get("hours")
