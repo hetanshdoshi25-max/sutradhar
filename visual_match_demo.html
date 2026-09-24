@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SUTRADHAR — Visual Match</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#0a0f1a;--panel:#111a2b;--line:#26324d;--text:#ece7db;--mute:#7f8ba6;
+    --amber:#f2a93b;--slate:#7c9ac9;--good:#5fd89a;--danger:#e2645f;}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Archivo',system-ui,sans-serif}
+  body{background:var(--ink);color:var(--text);min-height:100vh;overflow-x:hidden}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  .top{padding:16px 26px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;
+    background:linear-gradient(rgba(10,15,26,.9),transparent)}
+  .brand{font-size:18px;font-weight:800;letter-spacing:.5px}.brand i{color:var(--amber);font-style:normal}
+  .pill{font-size:10px;padding:4px 11px;border-radius:20px;background:rgba(242,169,59,.1);border:1px solid rgba(242,169,59,.35);color:var(--amber);letter-spacing:1px;font-weight:700}
+  .top .status{margin-left:auto;font-size:10.5px;color:var(--good);letter-spacing:1px;font-weight:700}
+
+  .wrap{display:grid;grid-template-columns:340px 1fr;gap:22px;padding:24px;max-width:1200px;margin:0 auto}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .panel .hd{padding:12px 16px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:1.5px;color:var(--slate);font-weight:700;text-transform:uppercase}
+
+  /* query image + scan overlay */
+  .querybox{position:relative;aspect-ratio:1;margin:16px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#05080f}
+  #queryImg{width:100%;height:100%;object-fit:cover;filter:blur(1.5px) brightness(.85)}
+  .scan-overlay{position:absolute;inset:0;pointer-events:none}
+  .scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);
+    box-shadow:0 0 16px var(--amber),0 0 30px rgba(242,169,59,.5);top:0;opacity:0}
+  .reticle{position:absolute;width:26px;height:26px;opacity:0}
+  .reticle::before,.reticle::after{content:"";position:absolute;background:var(--amber)}
+  .reticle::before{left:0;top:0;width:10px;height:2px}
+  .reticle::after{left:0;top:0;width:2px;height:10px}
+  .r-tl{top:12%;left:12%}.r-tr{top:12%;right:12%;transform:scaleX(-1)}
+  .r-bl{bottom:12%;left:12%;transform:scaleY(-1)}.r-br{bottom:12%;right:12%;transform:scale(-1)}
+  .measure-pts{position:absolute;inset:0;opacity:0}
+  .mpt{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--slate);box-shadow:0 0 6px var(--slate)}
+  .biolabel{position:absolute;bottom:10px;left:12px;right:12px;font-size:9.5px;color:var(--amber);opacity:0}
+
+  .controls{padding:0 16px 16px}
+  .btn{width:100%;padding:12px;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;
+    background:linear-gradient(135deg,var(--amber),#c9812a);color:#241708;box-shadow:0 6px 20px rgba(242,169,59,.3)}
+  .btn:disabled{opacity:.6;cursor:default}
+  .meta{margin-top:12px;font-size:10.5px;color:var(--mute);line-height:1.7}
+  .meta b{color:var(--text)}
+
+  /* database grid */
+  .dbgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px}
+  .rec{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0a1120;transition:all .25s}
+  .rec .av{width:100%;aspect-ratio:1;display:block}
+  .rec .cap{padding:7px 8px;font-size:10px;color:var(--mute);border-top:1px solid var(--line);text-align:center}
+  .rec .cap b{color:var(--text);display:block;font-size:11px}
+  .rec.searching{border-color:var(--slate);box-shadow:0 0 0 1px var(--slate),0 0 18px rgba(124,154,201,.4)}
+  .rec.rejected{opacity:.25;filter:grayscale(1)}
+  .rec.match{border-color:var(--amber);box-shadow:0 0 0 2px var(--amber),0 0 40px rgba(242,169,59,.55);transform:scale(1.04);z-index:2}
+  .rec .matchtag{position:absolute;top:6px;left:6px;right:6px;font-size:9px;font-weight:800;letter-spacing:1px;color:#241708;
+    background:var(--amber);border-radius:3px;padding:2px 0;text-align:center;opacity:0;transition:opacity .3s}
+  .rec.match .matchtag{opacity:1}
+
+  /* status console */
+  .console{margin:0 16px 16px;background:#05080f;border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+    font-size:11px;min-height:70px;max-height:120px;overflow-y:auto}
+  .console .ln{margin:3px 0;color:var(--mute)}
+  .console .ln .t{color:#4a5a78}
+  .console .ln.ok{color:var(--good)}
+  .console .ln.hot{color:var(--amber);font-weight:700}
+
+  /* result card */
+  .result{margin:0 16px 16px;border:1px solid var(--amber);border-radius:10px;padding:0;overflow:hidden;
+    max-height:0;opacity:0;transition:max-height .6s ease,opacity .5s ease}
+  .result.show{max-height:320px;opacity:1}
+  .result .rhd{background:linear-gradient(90deg,rgba(242,169,59,.18),transparent);padding:12px 16px;
+    font-size:12px;font-weight:800;letter-spacing:1px;color:var(--amber);display:flex;justify-content:space-between;align-items:center}
+  .result .rbody{padding:14px 16px;display:flex;gap:14px}
+  .result .rav{width:80px;height:80px;border-radius:8px;border:1px solid var(--amber);flex:none}
+  .result .rinfo{flex:1;font-size:12px;line-height:1.9}
+  .result .rinfo .k{color:var(--mute)}.result .rinfo .v{color:var(--text);font-weight:700;float:right}
+  .conf{font-size:22px;font-weight:800;color:var(--amber)}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="brand">SUTRADHAR<i>.</i></span>
+  <span class="pill">VISUAL IDENTITY MATCH</span>
+  <span class="status">● SYSTEM ONLINE</span>
+</div>
+
+<div class="wrap">
+  <!-- LEFT: query + controls -->
+  <div class="panel">
+    <div class="hd">Query Image</div>
+    <div class="querybox">
+      <canvas id="queryImg" width="300" height="300"></canvas>
+      <div class="scan-overlay">
+        <div class="scanline" id="scanline"></div>
+        <div class="reticle r-tl"></div><div class="reticle r-tr"></div>
+        <div class="reticle r-bl"></div><div class="reticle r-br"></div>
+        <div class="measure-pts" id="mpts"></div>
+        <div class="biolabel mono" id="biolabel">ANALYZING VISUAL SIGNATURE...</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="scanBtn" onclick="runScan()">▶ RUN VISUAL MATCH</button>
+      <div class="meta">
+        Perceptual hash matching against the case image set.<br>
+        <b>Legal scope:</b> compares operator-published avatars only. Not facial recognition against external feeds.
+      </div>
+    </div>
+    <div class="console mono" id="console"><div class="ln"><span class="t">[system]</span> awaiting scan command</div></div>
+  </div>
+
+  <!-- RIGHT: database + result -->
+  <div class="panel">
+    <div class="hd">Case Image Database — <span id="dbcount">6</span> records</div>
+    <div class="dbgrid" id="dbgrid"></div>
+    <div class="result" id="result">
+      <div class="rhd"><span>◆ MATCH CONFIRMED</span><span class="conf" id="rconf">0%</span></div>
+      <div class="rbody">
+        <canvas class="rav" id="rav" width="80" height="80"></canvas>
+        <div class="rinfo">
+          <div><span class="k">Alias</span><span class="v" id="rAlias">—</span></div>
+          <div><span class="k">Source</span><span class="v" id="rSource">—</span></div>
+          <div><span class="k">Perceptual distance</span><span class="v" id="rDist">—</span></div>
+          <div><span class="k">Linked identity</span><span class="v" id="rLink">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---- procedural avatar generator (distinct, deterministic per seed) ---- */
+function drawAvatar(ctx,seed,size){
+  const rnd=mulberry32(seed);
+  const hue=Math.floor(rnd()*360);
+  const g=ctx.createLinearGradient(0,0,size,size);
+  g.addColorStop(0,`hsl(${hue},45%,28%)`); g.addColorStop(1,`hsl(${(hue+40)%360},50%,16%)`);
+  ctx.fillStyle=g; ctx.fillRect(0,0,size,size);
+  // abstract "face-like" shapes
+  for(let i=0;i<5;i++){
+    ctx.fillStyle=`hsla(${(hue+i*30)%360},60%,${40+rnd()*30}%,${.5+rnd()*.4})`;
+    const r=size*(.1+rnd()*.22);
+    ctx.beginPath(); ctx.arc(size*(.2+rnd()*.6),size*(.2+rnd()*.6),r,0,7); ctx.fill();
+  }
+  ctx.strokeStyle=`hsla(${hue},50%,70%,.35)`; ctx.lineWidth=size*.02;
+  ctx.beginPath(); ctx.arc(size/2,size*.42,size*.18,0,7); ctx.stroke();
+}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+const RECORDS=[
+  {alias:"greymarket_x", src:"Obsidian Market", seed:11},
+  {alias:"cipher9", src:"RedGate Exchange", seed:22},
+  {alias:"nullpoint7", src:"NightBay Trading", seed:33},
+  {alias:"shadowfox", src:"Silver Circuit", seed:77},   // <-- the true match
+  {alias:"duskrunner", src:"Cinder Board", seed:44},
+  {alias:"quietledger", src:"Obsidian Market", seed:55},
+];
+const MATCH_INDEX=3;          // shadowfox is the same person as the query
+const QUERY_SEED=77;          // query image derived from same seed (slightly altered)
+
+/* render database grid */
+const grid=document.getElementById("dbgrid");
+RECORDS.forEach((r,i)=>{
+  const el=document.createElement("div"); el.className="rec"; el.id="rec"+i;
+  el.innerHTML=`<div class="matchtag">MATCH</div><canvas class="av" width="120" height="120"></canvas>
+    <div class="cap"><b>${r.alias}</b>${r.src}</div>`;
+  grid.appendChild(el);
+  drawAvatar(el.querySelector("canvas").getContext("2d"),r.seed,120);
+});
+
+/* render query image (same seed as match, but "blurred/altered") */
+(function(){
+  const ctx=document.getElementById("queryImg").getContext("2d");
+  drawAvatar(ctx,QUERY_SEED,300);
+  // measurement points
+  const mp=document.getElementById("mpts");
+  for(let i=0;i<14;i++){
+    const d=document.createElement("div"); d.className="mpt";
+    d.style.left=(15+Math.random()*70)+"%"; d.style.top=(15+Math.random()*70)+"%";
+    mp.appendChild(d);
+  }
+})();
+
+const log=(msg,cls="")=>{
+  const c=document.getElementById("console");
+  const t=new Date().toLocaleTimeString('en-GB');
+  c.innerHTML+=`<div class="ln ${cls}"><span class="t">[${t}]</span> ${msg}</div>`;
+  c.scrollTop=c.scrollHeight;
+};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function runScan(){
+  const btn=document.getElementById("scanBtn"); btn.disabled=true; btn.textContent="SCANNING...";
+  document.getElementById("result").classList.remove("show");
+  document.getElementById("console").innerHTML="";
+  RECORDS.forEach((_,i)=>{const e=document.getElementById("rec"+i);e.className="rec";});
+
+  log("initializing perceptual hash engine","");
+  await sleep(300);
+  log("extracting 64-bit visual signature from query","");
+
+  // scan animation on query image
+  gsapLikeScan();
+  document.querySelectorAll(".reticle").forEach(r=>r.style.opacity=1);
+  document.getElementById("mpts").style.opacity=1;
+  document.getElementById("biolabel").style.opacity=1;
+  await sleep(1400);
+  log("signature acquired: <span style='color:#f2a93b'>a7f3-2b91-c04d-88e1</span>","ok");
+  await sleep(300);
+  log("comparing against "+RECORDS.length+" case records...","");
+
+  // sweep through database
+  for(let i=0;i<RECORDS.length;i++){
+    const el=document.getElementById("rec"+i);
+    el.classList.add("searching");
+    const dist = i===MATCH_INDEX ? 3 : 22+Math.floor(Math.random()*20);
+    const sim = Math.round((1-dist/64)*100);
+    await sleep(360);
+    el.classList.remove("searching");
+    if(i===MATCH_INDEX){
+      log(`record ${i+1} [${RECORDS[i].alias}] → distance ${dist}, similarity ${sim}%  ◆ CANDIDATE`,"hot");
+      el._match={dist,sim};
+    } else {
+      el.classList.add("rejected");
+      log(`record ${i+1} [${RECORDS[i].alias}] → distance ${dist}, similarity ${sim}%  reject`,"");
+    }
+  }
+
+  await sleep(400);
+  const m=document.getElementById("rec"+MATCH_INDEX);
+  m.classList.remove("rejected"); m.classList.add("match");
+  log("◆ MATCH CONFIRMED — same visual identity across aliases","hot");
+
+  // reveal result card
+  await sleep(500);
+  drawAvatar(document.getElementById("rav").getContext("2d"),RECORDS[MATCH_INDEX].seed,80);
+  document.getElementById("rconf").textContent="95%";
+  document.getElementById("rAlias").textContent=RECORDS[MATCH_INDEX].alias;
+  document.getElementById("rSource").textContent=RECORDS[MATCH_INDEX].src;
+  document.getElementById("rDist").textContent="3 / 64 bits";
+  document.getElementById("rLink").textContent="= query subject";
+  document.getElementById("result").classList.add("show");
+
+  btn.disabled=false; btn.textContent="▶ RUN VISUAL MATCH AGAIN";
+}
+
+function gsapLikeScan(){
+  const line=document.getElementById("scanline");
+  line.style.opacity=1; let start=null;
+  function step(ts){
+    if(!start)start=ts;
+    const p=Math.min((ts-start)/1300,1);
+    line.style.top=(p*100)+"%";
+    if(p<1) requestAnimationFrame(step);
+    else { line.style.opacity=0; }
+  }
+  requestAnimationFrame(step);
+}
+</script>
+</body>
+</html>

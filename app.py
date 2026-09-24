@@ -27,6 +27,8 @@ from identity_lookup import identity_lookup
 import audit_log
 import monitor
 import crawler as crawler_mod
+from local_ai import analyst_brief
+from crypto_vault import demo_proof, Vault
 from sample_personas import PERSONAS
 import threading
 import http.server
@@ -132,6 +134,36 @@ def audit():
     """Tamper-evident chain-of-custody log for every analysis/export action."""
     ok, broke_at = audit_log.verify_chain()
     return {"entries": audit_log.get_log(), "chain_valid": ok, "broke_at_seq": broke_at}
+
+
+@app.post("/ai/brief")
+def ai_brief(req: AnalyzeRequest):
+    """Local offline AI analyst: auto-triage + narrative summaries. No
+    external API - runs entirely on-device to keep case data air-gapped."""
+    personas = [p.model_dump() for p in req.personas if p.text.strip()]
+    if len(personas) < 2:
+        return {"error": "Add at least two personas with text."}
+    g = build_graph(personas, threshold=req.threshold)
+    brief = analyst_brief(g)
+    audit_log.record("ai_brief", f"local analyst brief generated for {len(personas)} personas")
+    return brief
+
+
+class ProofRequest(BaseModel):
+    passphrase: str = "operator-demo-key"
+    record: dict = {"alias": "shadowfox", "site": "ForumA",
+                    "text": "tbh the new vendor list looks kinda sketchy",
+                    "pgp": "0x9F3A21BC"}
+
+
+@app.post("/encrypt/proof")
+def encrypt_proof(req: ProofRequest):
+    """Live proof of at-rest encryption: returns the plaintext, its opaque
+    AES-256 ciphertext (the on-disk form), a decryption round-trip check,
+    and a tamper-detection check."""
+    proof = demo_proof(req.passphrase, req.record)
+    audit_log.record("encrypt_proof", "AES-256 at-rest encryption proof generated")
+    return proof
 
 
 @app.post("/export/json")

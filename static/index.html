@@ -92,6 +92,41 @@
   .empty{color:var(--mute);font-size:12px}
 
   ::placeholder{color:#5a6478}
+  /* ===== Visual Match modal ===== */
+  #vmModal{position:fixed;inset:0;z-index:200;background:rgba(6,10,18,.92);backdrop-filter:blur(6px);display:none;padding:40px}
+  #vmModal.show{display:flex;gap:22px;align-items:stretch}
+  .vm-panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .vm-left{width:360px;flex:none}
+  .vm-right{flex:1;min-width:0}
+  .vm-hd{padding:13px 18px;border-bottom:1px solid var(--line);font-size:11px;letter-spacing:1.5px;color:var(--slate);font-weight:700;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .vm-hd .x{cursor:pointer;color:var(--mute);font-size:16px}
+  .vm-qbox{position:relative;margin:18px;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#05080f}
+  #vmQuery{width:100%;height:100%;display:block;filter:blur(1.4px) brightness(.85)}
+  .vm-scanline{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent);box-shadow:0 0 16px var(--amber);top:0;opacity:0}
+  .vm-reticle{position:absolute;width:24px;height:24px;opacity:0;transition:opacity .3s}
+  .vm-reticle::before,.vm-reticle::after{content:"";position:absolute;background:var(--amber)}
+  .vm-reticle::before{left:0;top:0;width:9px;height:2px}.vm-reticle::after{left:0;top:0;width:2px;height:9px}
+  .vm-tl{top:11%;left:11%}.vm-tr{top:11%;right:11%;transform:scaleX(-1)}.vm-bl{bottom:11%;left:11%;transform:scaleY(-1)}.vm-br{bottom:11%;right:11%;transform:scale(-1)}
+  .vm-biolabel{position:absolute;bottom:9px;left:12px;font-size:9.5px;color:var(--amber);opacity:0;font-family:'JetBrains Mono',monospace}
+  .vm-controls{padding:0 18px 18px}
+  .vm-console{margin:0 18px 18px;background:#05080f;border:1px solid var(--line);border-radius:8px;padding:11px 13px;font-size:11px;flex:1;overflow-y:auto;font-family:'JetBrains Mono',monospace}
+  .vm-console .ln{margin:3px 0;color:var(--mute)}.vm-console .ln .t{color:#4a5a78}
+  .vm-console .ln.ok{color:var(--good)}.vm-console .ln.hot{color:var(--amber);font-weight:700}
+  .vm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;padding:18px;overflow-y:auto;flex:1;align-content:start}
+  .vm-rec{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0a1120;transition:all .25s}
+  .vm-rec canvas{width:100%;aspect-ratio:1;display:block}
+  .vm-rec .cap{padding:6px;font-size:9.5px;color:var(--mute);border-top:1px solid var(--line);text-align:center}
+  .vm-rec .cap b{color:var(--text);display:block;font-size:10.5px}
+  .vm-rec.searching{border-color:var(--slate);box-shadow:0 0 0 1px var(--slate),0 0 16px rgba(124,154,201,.4)}
+  .vm-rec.rejected{opacity:.25;filter:grayscale(1)}
+  .vm-rec.match{border-color:var(--amber);box-shadow:0 0 0 2px var(--amber),0 0 34px rgba(242,169,59,.55);transform:scale(1.05);z-index:2}
+  .vm-rec .mtag{position:absolute;top:5px;left:5px;right:5px;font-size:8.5px;font-weight:800;letter-spacing:1px;color:#241708;background:var(--amber);border-radius:3px;padding:2px 0;text-align:center;opacity:0}
+  .vm-rec.match .mtag{opacity:1}
+  .vm-result{margin:0 18px 18px;border:1px solid var(--amber);border-radius:10px;overflow:hidden;max-height:0;opacity:0;transition:max-height .5s,opacity .4s}
+  .vm-result.show{max-height:200px;opacity:1}
+  .vm-result .rhd{background:linear-gradient(90deg,rgba(242,169,59,.18),transparent);padding:11px 16px;font-size:12px;font-weight:800;letter-spacing:1px;color:var(--amber);display:flex;justify-content:space-between}
+  .vm-result .rb{padding:12px 16px;font-size:12px;line-height:1.9}
+  .vm-result .rb .k{color:var(--mute)}.vm-result .rb .v{color:var(--text);font-weight:700;float:right}
 </style></head><body>
 <div id="bg3d"></div>
 <div class="vignette"></div>
@@ -122,6 +157,7 @@
     <div class="sec-label">Personas</div>
     <div id="personas"></div>
     <button class="ghost" onclick="addPersona('','','',true)">+ Add person</button>
+    <button class="ghost" onclick="openVisualMatch()" style="margin-top:8px">🎯 Visual Match (avatar scan)</button>
 
     <div class="sec-label">Live Crawl <span class="note">(simulated hidden-service)</span></div>
     <button class="ghost" onclick="runCrawl()" id="crawlBtn">🕷 Start Crawl</button>
@@ -147,6 +183,14 @@
     </div>
     <div id="idResults"></div>
 
+    <div class="sec-label">AI Analyst <span class="note">(offline · no external API)</span></div>
+    <button class="ghost" onclick="runAIBrief()" id="aiBtn">🧠 Generate Brief</button>
+    <div id="aiResults"></div>
+
+    <div class="sec-label">Encryption Vault <span class="note">(AES-256 at-rest)</span></div>
+    <button class="ghost" onclick="proveEncryption()" id="encBtn">🔒 Prove Encryption</button>
+    <div id="encResults"></div>
+
     <div class="sec-label">Audit Log <span class="note">(chain-of-custody)</span></div>
     <button class="ghost" onclick="loadAudit()">↻ Refresh log</button>
     <div id="auditResults"></div>
@@ -170,6 +214,34 @@
 
 <div class="caseline">Authorized investigative use only &nbsp;·&nbsp; SIH26151 &nbsp;·&nbsp; NTRO</div>
 
+<div id="vmModal">
+  <div class="vm-panel vm-left">
+    <div class="vm-hd"><span>Query Image <span class="note" style="color:var(--mute);text-transform:none;letter-spacing:0">(seized)</span></span><span class="x" onclick="closeVisualMatch()">✕</span></div>
+    <div class="vm-qbox">
+      <canvas id="vmQuery" width="320" height="320"></canvas>
+      <div class="vm-scanline" id="vmScanline"></div>
+      <div class="vm-reticle vm-tl"></div><div class="vm-reticle vm-tr"></div>
+      <div class="vm-reticle vm-bl"></div><div class="vm-reticle vm-br"></div>
+      <div class="vm-biolabel" id="vmBio">ANALYZING VISUAL SIGNATURE...</div>
+    </div>
+    <div class="vm-controls">
+      <button class="act" id="vmScanBtn" onclick="runVisualScan()" style="width:100%;padding:12px;border:none;border-radius:8px;font-weight:700;cursor:pointer">▶ RUN VISUAL MATCH</button>
+    </div>
+    <div class="vm-console" id="vmConsole"><div class="ln"><span class="t">[system]</span> perceptual-hash engine ready</div></div>
+  </div>
+  <div class="vm-panel vm-right">
+    <div class="vm-hd"><span>Case Image Database — <span id="vmCount">0</span> records</span><span style="color:var(--mute);font-size:9.5px;text-transform:none;letter-spacing:0">avatar reuse across aliases · legal OSINT (published images only)</span></div>
+    <div class="vm-grid" id="vmGrid"></div>
+    <div class="vm-result" id="vmResult">
+      <div class="rhd"><span>◆ MATCH CONFIRMED</span><span id="vmConf">0%</span></div>
+      <div class="rb">
+        <div><span class="k">Alias</span><span class="v" id="vmAlias">—</span></div>
+        <div><span class="k">Source</span><span class="v" id="vmSource">—</span></div>
+        <div><span class="k">Perceptual distance</span><span class="v" id="vmDist">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 // ---- case id + ambient background ----
 (function(){
@@ -620,6 +692,52 @@ async function idLookup(){
   }catch(e){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Lookup failed.</div>`;}
 }
 
+async function runAIBrief(){
+  const personas=collect();
+  const box=document.getElementById("aiResults");
+  if(personas.length<2){box.innerHTML=`<div style="color:var(--mute);font-size:11px">Load or crawl at least two personas first.</div>`;return;}
+  const threshold=parseFloat(document.getElementById("thr").value);
+  box.innerHTML=`<div style="color:var(--mute);font-size:11px">Running local analyst…</div>`;
+  try{
+    const r=await fetch("/ai/brief",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({personas,threshold})});
+    const d=await r.json();
+    if(d.error){box.innerHTML=`<div style="color:var(--amber);font-size:11px">${d.error}</div>`;return;}
+    let h=`<div style="font-size:11px;color:var(--text);line-height:1.6;margin-bottom:8px">${d.headline}</div>`;
+    h+=`<div style="font-size:9.5px;color:var(--slate);letter-spacing:1px;margin:8px 0 4px">TRIAGE QUEUE</div>`;
+    d.triage_queue.slice(0,6).forEach(q=>{
+      const c=q.priority>=0.85?"var(--amber)":q.priority>=0.6?"var(--slate)":"var(--mute)";
+      h+=`<div style="display:flex;gap:6px;font-size:10.5px;margin:4px 0"><span style="color:${c};font-weight:700">${Math.round(q.priority*100)}</span><span style="color:var(--text)">${esc(q.label)}</span></div>`;
+    });
+    h+=`<div style="font-size:9.5px;color:var(--slate);letter-spacing:1px;margin:10px 0 4px">NARRATIVES</div>`;
+    d.attributions.forEach(s=>{
+      h+=`<div style="background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:9px;margin:6px 0">
+        <div style="font-size:11px;color:var(--text);line-height:1.6">${esc(s.narrative)}</div>
+        <div style="font-size:10px;color:var(--amber);margin-top:6px">▸ ${esc(s.recommended_action)}</div></div>`;
+    });
+    h+=`<div style="font-size:9px;color:var(--mute);margin-top:6px">${esc(d.engine)}</div>`;
+    box.innerHTML=h;
+    loadAudit();
+  }catch(e){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Brief failed.</div>`;}
+}
+
+async function proveEncryption(){
+  const box=document.getElementById("encResults");
+  box.innerHTML=`<div style="color:var(--mute);font-size:11px">Encrypting a sample record…</div>`;
+  try{
+    const r=await fetch("/encrypt/proof",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({})});
+    const d=await r.json();
+    box.innerHTML=`
+      <div style="font-size:10px;color:var(--mute);margin-bottom:6px">${esc(d.algorithm)}<br>${esc(d.kdf)}</div>
+      <div style="font-size:9.5px;color:var(--slate);letter-spacing:1px;margin:6px 0 3px">PLAINTEXT (in memory)</div>
+      <div style="background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:7px;font-size:10px;color:var(--good);word-break:break-all">${esc(d.plaintext_preview)}</div>
+      <div style="font-size:9.5px;color:var(--slate);letter-spacing:1px;margin:8px 0 3px">CIPHERTEXT (on disk)</div>
+      <div style="background:#05080f;border:1px solid var(--line);border-radius:5px;padding:7px;font-size:9.5px;color:var(--danger);word-break:break-all;max-height:70px;overflow-y:auto;font-family:'JetBrains Mono',monospace">${esc(d.ciphertext_on_disk)}</div>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;margin-top:8px"><span style="color:var(--mute)">Decrypt round-trip</span><span style="color:var(--good);font-weight:700">${d.decrypted_matches_original?'✓ verified':'✗ fail'}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;margin-top:4px"><span style="color:var(--mute)">Tamper attempt</span><span style="color:var(--good);font-weight:700">${d.tamper_attempt_detected?'✓ rejected':'✗ accepted'}</span></div>`;
+    loadAudit();
+  }catch(e){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Proof failed.</div>`;}
+}
+
 async function loadAudit(){
   const box=document.getElementById("auditResults");
   box.innerHTML=`<div style="color:var(--mute);font-size:11px">Loading…</div>`;
@@ -719,5 +837,101 @@ async function exportData(fmt){
   URL.revokeObjectURL(url);
 }
 
-// page starts empty — use "Load Sample" or "Start Crawl" to populate personas
+// ===== Visual Match (real perceptual hashing, same 8x8 algo as image_match.py) =====
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function seedFromAlias(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function drawAvatar(ctx,seed,size){
+  const rnd=mulberry32(seed); const hue=Math.floor(rnd()*360);
+  const g=ctx.createLinearGradient(0,0,size,size);
+  g.addColorStop(0,`hsl(${hue},45%,28%)`); g.addColorStop(1,`hsl(${(hue+40)%360},50%,16%)`);
+  ctx.fillStyle=g; ctx.fillRect(0,0,size,size);
+  for(let i=0;i<5;i++){ctx.fillStyle=`hsla(${(hue+i*30)%360},60%,${40+rnd()*30}%,${.5+rnd()*.4})`;
+    const r=size*(.1+rnd()*.22); ctx.beginPath(); ctx.arc(size*(.2+rnd()*.6),size*(.2+rnd()*.6),r,0,7); ctx.fill();}
+  ctx.strokeStyle=`hsla(${hue},50%,70%,.35)`; ctx.lineWidth=size*.02;
+  ctx.beginPath(); ctx.arc(size/2,size*.42,size*.18,0,7); ctx.stroke();
+}
+// 64-bit perceptual hash: 8x8 greyscale, threshold on mean (mirrors image_match.py)
+function pHashFromCanvas(cv){
+  const s=8; const off=document.createElement("canvas"); off.width=off.height=s;
+  const octx=off.getContext("2d"); octx.drawImage(cv,0,0,s,s);
+  const d=octx.getImageData(0,0,s,s).data; const grey=[];
+  for(let i=0;i<s*s;i++){grey.push(0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2]);}
+  const avg=grey.reduce((a,b)=>a+b,0)/grey.length;
+  const bits=[]; for(let i=0;i<grey.length;i++) bits.push(grey[i]>=avg?1:0);
+  return bits;
+}
+function hamming(a,b){let d=0;for(let i=0;i<a.length;i++) if(a[i]!==b[i]) d++; return d;}
+
+let vmRecords=[], vmMatchIdx=0;
+function openVisualMatch(){
+  const personas=collect();
+  const modal=document.getElementById("vmModal");
+  const grid=document.getElementById("vmGrid");
+  grid.innerHTML=""; document.getElementById("vmResult").classList.remove("show");
+  document.getElementById("vmConsole").innerHTML=`<div class="ln"><span class="t">[system]</span> perceptual-hash engine ready</div>`;
+
+  // build database from current personas (fallback demo set if none loaded)
+  vmRecords = personas.length>=2 ? personas.map(p=>({alias:p.alias,src:p.site||"unknown",seed:seedFromAlias(p.alias)}))
+    : ["greymarket_x|Obsidian Market","cipher9|RedGate Exchange","nullpoint7|NightBay Trading","shadowfox|Silver Circuit","duskrunner|Cinder Board","quietledger|Obsidian Market"]
+        .map(s=>{const[a,src]=s.split("|");return{alias:a,src,seed:seedFromAlias(a)};});
+  vmMatchIdx = Math.max(0, vmRecords.findIndex(r=>r.alias==="shadowfox"));
+
+  document.getElementById("vmCount").textContent=vmRecords.length;
+  vmRecords.forEach((r,i)=>{
+    const el=document.createElement("div"); el.className="vm-rec"; el.id="vmrec"+i;
+    el.innerHTML=`<div class="mtag">MATCH</div><canvas width="120" height="120"></canvas><div class="cap"><b>${esc(r.alias)}</b>${esc(r.src)}</div>`;
+    grid.appendChild(el);
+    drawAvatar(el.querySelector("canvas").getContext("2d"),r.seed,120);
+    r.hash=pHashFromCanvas(el.querySelector("canvas"));
+  });
+  // query image = the match record's avatar (rendered blurred via CSS)
+  const q=document.getElementById("vmQuery"); drawAvatar(q.getContext("2d"),vmRecords[vmMatchIdx].seed,320);
+  document.querySelectorAll(".vm-reticle").forEach(r=>r.style.opacity=0);
+  document.getElementById("vmBio").style.opacity=0;
+  modal.classList.add("show");
+}
+function closeVisualMatch(){ document.getElementById("vmModal").classList.remove("show"); }
+
+const vmSleep=ms=>new Promise(r=>setTimeout(r,ms));
+function vmLog(msg,cls=""){const c=document.getElementById("vmConsole");const t=new Date().toLocaleTimeString('en-GB');
+  c.innerHTML+=`<div class="ln ${cls}"><span class="t">[${t}]</span> ${msg}</div>`;c.scrollTop=c.scrollHeight;}
+
+async function runVisualScan(){
+  const btn=document.getElementById("vmScanBtn"); btn.disabled=true; btn.textContent="SCANNING...";
+  document.getElementById("vmResult").classList.remove("show");
+  vmRecords.forEach((_,i)=>{document.getElementById("vmrec"+i).className="vm-rec";});
+  document.getElementById("vmConsole").innerHTML="";
+
+  vmLog("extracting 64-bit perceptual signature from query","");
+  // scanline animation
+  const line=document.getElementById("vmScanline"); line.style.opacity=1; let start=null;
+  (function step(ts){if(!start)start=ts;const p=Math.min((ts-start)/1200,1);line.style.top=(p*100)+"%";if(p<1)requestAnimationFrame(step);else line.style.opacity=0;})();
+  document.querySelectorAll(".vm-reticle").forEach(r=>r.style.opacity=1);
+  document.getElementById("vmBio").style.opacity=1;
+  const qHash=pHashFromCanvas(document.getElementById("vmQuery"));
+  await vmSleep(1300);
+  vmLog("signature acquired · comparing against "+vmRecords.length+" records","ok");
+
+  let best={i:-1,dist:999};
+  for(let i=0;i<vmRecords.length;i++){
+    const el=document.getElementById("vmrec"+i); el.classList.add("searching");
+    const dist=hamming(qHash,vmRecords[i].hash); const sim=Math.round((1-dist/64)*100);
+    await vmSleep(340); el.classList.remove("searching");
+    if(dist<best.dist) best={i,dist};
+    if(dist<=6){ vmLog(`[${vmRecords[i].alias}] distance ${dist} · similarity ${sim}%  ◆ CANDIDATE`,"hot"); }
+    else { el.classList.add("rejected"); vmLog(`[${vmRecords[i].alias}] distance ${dist} · similarity ${sim}%  reject`,""); }
+  }
+  await vmSleep(300);
+  const m=document.getElementById("vmrec"+best.i); m.classList.remove("rejected"); m.classList.add("match");
+  const sim=Math.round((1-best.dist/64)*100);
+  vmLog("◆ MATCH CONFIRMED — same visual identity across aliases","hot");
+  await vmSleep(400);
+  document.getElementById("vmConf").textContent=sim+"%";
+  document.getElementById("vmAlias").textContent=vmRecords[best.i].alias;
+  document.getElementById("vmSource").textContent=vmRecords[best.i].src;
+  document.getElementById("vmDist").textContent=best.dist+" / 64 bits";
+  document.getElementById("vmResult").classList.add("show");
+  btn.disabled=false; btn.textContent="▶ RUN VISUAL MATCH AGAIN";
+}
+
 </script></body></html>
