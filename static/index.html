@@ -521,6 +521,11 @@ function showEvidence(edgeId){
   html+=bar("Character n-grams",ev.char_ngrams);
   html+=bar("Function words",ev.function_words);
   html+=bar("Style ratios",ev.style_ratios);
+  if(ev.cognitive!==undefined){
+    html+=`<div style="font-size:10px;letter-spacing:1px;color:#5fd89a;margin:10px 0 4px">COGNITIVE FINGERPRINT</div>`;
+    html+=bar("Reasoning-style match",ev.cognitive);
+    html+=`<div style="font-size:9px;color:var(--mute);margin-top:2px">Behavioural signal · resists AI text-rephrasing</div>`;
+  }
   if(ev.activity_pattern!==undefined){
     html+=sub("ACTIVITY PATTERN");
     html+=bar("Active-hours overlap",ev.activity_pattern);
@@ -609,6 +614,23 @@ function showExposure(nodeId){
       html+=`<div style="font-size:10.5px;color:${evc};margin-top:4px">⚑ ${t.tell}</div>`;
       html+=`<div style="color:var(--mute);font-size:9.5px;margin-left:12px">${t.detail}</div>`;
     });
+  }
+  if(n.cognitive && n.cognitive.traits){
+    html+=`<div style="font-size:10px;letter-spacing:1px;color:var(--mute);margin:12px 0 4px">COGNITIVE FINGERPRINT <span style="color:#5fd89a">(reasoning style)</span></div>`;
+    n.cognitive.traits.forEach(t=>{
+      html+=`<div style="font-size:10.5px;color:#a9c2e6;margin-top:3px">◈ ${t}</div>`;
+    });
+    const d=n.cognitive.dimensions||{};
+    const mini=(lbl,val,mx)=>`<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><span style="font-size:9px;color:var(--mute);width:74px">${lbl}</span><div style="flex:1;height:3px;background:var(--panel2);border-radius:2px;overflow:hidden"><div style="height:100%;width:${Math.min(100,(val/mx)*100)}%;background:#7c9ac9"></div></div></div>`;
+    if(Object.keys(d).length){
+      html+=`<div style="margin-top:6px">`;
+      html+=mini("hedging",d.hedging||0,5);
+      html+=mini("certainty",d.certainty||0,5);
+      html+=mini("causal",d.causal_density||0,5);
+      html+=mini("risk-frame",d.risk_frame||0,5);
+      html+=mini("opportunity",d.opportunity_frame||0,5);
+      html+=`</div><div style="font-size:9px;color:var(--mute);margin-top:5px">Behavioural signature survives AI-rephrasing of surface text.</div>`;
+    }
   }
   box.innerHTML=html;
   box.style.display="block";
