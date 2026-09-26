@@ -16,6 +16,7 @@ Run:
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
 
@@ -36,6 +37,8 @@ import socketserver
 import functools
 
 app = FastAPI(title="SUTRADHAR")
+app.add_middleware(CORSMiddleware, allow_origins=["*"],
+                   allow_methods=["*"], allow_headers=["*"])
 
 BASE = Path(__file__).parent
 STATIC = BASE / "static"
@@ -250,5 +253,6 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import uvicorn, os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
