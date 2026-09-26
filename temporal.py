@@ -26,11 +26,37 @@ def activity_vector(hours):
     return v / total if total else v
 
 
+def circadian_features(hours):
+    """Higher-order rhythm descriptors beyond the raw histogram: how spread
+    out, how peaked, and how nocturnal a persona's activity is. These are
+    stable personal traits and add discriminative power to the raw overlap."""
+    if not hours:
+        return {"spread": 0.0, "peakedness": 0.0, "nocturnal": 0.0, "regularity": 0.0}
+    v = activity_vector(hours)
+    active_bins = sum(1 for x in v if x > 0)
+    spread = active_bins / 24.0                       # how many hours-of-day used
+    peakedness = float(v.max())                       # concentration in top hour
+    nocturnal = float(sum(v[h] for h in list(range(0, 6)) + list(range(22, 24))))
+    # regularity: inverse of hour-to-hour variability of the raw hours
+    hrs = [int(h) % 24 for h in hours]
+    mean_h = sum(hrs) / len(hrs)
+    var = sum((h - mean_h) ** 2 for h in hrs) / len(hrs)
+    regularity = 1.0 / (1.0 + var ** 0.5)
+    return {"spread": round(spread, 3), "peakedness": round(peakedness, 3),
+            "nocturnal": round(nocturnal, 3), "regularity": round(regularity, 3)}
+
+
 def temporal_similarity(hours_a, hours_b):
-    """Cosine similarity of two activity histograms -> 0..1."""
+    """Blend of (a) histogram overlap and (b) circadian-shape agreement -> 0..1."""
     a, b = activity_vector(hours_a), activity_vector(hours_b)
     denom = (np.linalg.norm(a) * np.linalg.norm(b)) or 1.0
-    return float(np.dot(a, b) / denom)
+    hist_sim = float(np.dot(a, b) / denom)
+    # circadian-shape similarity
+    fa, fb = circadian_features(hours_a), circadian_features(hours_b)
+    keys = ["spread", "peakedness", "nocturnal", "regularity"]
+    shape_dist = sum(abs(fa[k] - fb[k]) for k in keys) / len(keys)
+    shape_sim = 1.0 - min(1.0, shape_dist)
+    return round(0.75 * hist_sim + 0.25 * shape_sim, 4)
 
 
 def peak_window(hours):

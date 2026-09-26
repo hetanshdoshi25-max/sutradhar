@@ -18,14 +18,20 @@ PATTERNS = {
     "email":   re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
     "btc":     re.compile(r"\b(?:bc1[a-z0-9]{20,60}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})\b"),
     "eth":     re.compile(r"\b0x[a-fA-F0-9]{40}\b"),
+    "monero":  re.compile(r"\b4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}\b"),
     "pgp":     re.compile(r"\b0x[a-fA-F0-9]{8}(?:[a-fA-F0-9]{8})?\b"),   # 8 or 16 hex key id
     "onion":   re.compile(r"\b[a-z2-7]{16,56}\.onion\b"),
+    "session": re.compile(r"\b05[0-9a-f]{64}\b"),                        # Session messenger id
+    "tox":     re.compile(r"\b[0-9A-Fa-f]{76}\b"),                       # Tox id
+    "jabber":  re.compile(r"\b[A-Za-z0-9._%+-]+@(?:jabber|xmpp|exploit)\.[A-Za-z0-9.-]+\b"),
     "handle":  re.compile(r"(?<![\w@])@[A-Za-z0-9_]{4,32}\b"),
 }
 
 # how each identifier type reads in evidence
 NICE = {"email": "email", "btc": "BTC wallet", "eth": "ETH wallet",
-        "pgp": "PGP key", "onion": "onion service", "handle": "handle"}
+        "monero": "Monero wallet", "pgp": "PGP key", "onion": "onion service",
+        "session": "Session ID", "tox": "Tox ID", "jabber": "Jabber/XMPP",
+        "handle": "handle"}
 
 
 def extract_identifiers(text):

@@ -105,8 +105,52 @@ def make_sample(author_key, rng):
         f"{filler} it's hard to tell right now. {closer}",
         f"{opener} about {topic} - {filler} nothing's really changed. {closer}",
         f"{opener}, {topic} needs a closer look, {filler}. {closer}",
+        f"{opener} {topic}? {filler} i've seen worse honestly. {closer}",
+        f"{opener} - regarding {topic}, {filler} the details matter here. {closer}",
+        f"about {topic}: {opener.lower()} {filler} we should wait. {closer}",
     ]
     return rng.choice(templates)
+
+
+# --- 6 additional distinct authors for a larger, harder dataset ---
+AUTHORS.update({
+    "I_analytical": {
+        "openers": ["Looking at the data,", "From what I can measure,", "Statistically speaking,", "On closer inspection,"],
+        "fillers": ["the numbers suggest", "the pattern indicates", "the trend shows"],
+        "closers": ["pending verification.", "within margin of error.", "assuming the sample holds."],
+        "topics": ["the throughput", "the failure rate", "the sample size", "the variance", "the distribution", "the baseline"],
+    },
+    "J_streetwise": {
+        "openers": ["look fam,", "real talk,", "on god,", "deadass,"],
+        "fillers": ["you already know", "no cap", "straight up", "fr fr"],
+        "closers": ["that's the move.", "stay up.", "we outside.", "period."],
+        "topics": ["this play", "the come up", "that bag", "the plug", "this lick", "the grind"],
+    },
+    "K_bureaucratic": {
+        "openers": ["Please be advised that", "Kindly note that", "For the record,", "As per protocol,"],
+        "fillers": ["in accordance with policy", "subject to review", "pursuant to guidelines"],
+        "closers": ["for your consideration.", "at your earliest convenience.", "as deemed appropriate."],
+        "topics": ["the submission", "the compliance matter", "the pending request", "the documentation", "the procedure", "the filing"],
+    },
+    "L_paranoid": {
+        "openers": ["watch out,", "don't trust it,", "something's off,", "be careful here,"],
+        "fillers": ["they're watching", "it's a setup", "someone's tracking this", "it's compromised"],
+        "closers": ["stay low.", "trust no one.", "burn it after.", "delete this."],
+        "topics": ["the new mirror", "that account", "the meetup", "this channel", "the wallet", "the drop point"],
+    },
+    "M_enthusiast": {
+        "openers": ["oh this is exciting,", "love this,", "so cool that", "amazing how"],
+        "fillers": ["honestly can't wait", "it's going to be great", "so much potential"],
+        "closers": ["can't wait!", "this is the one!", "let's gooo!", "so hyped!"],
+        "topics": ["the update", "the launch", "the new feature", "the release", "the collab", "the reveal"],
+    },
+    "N_minimalist": {
+        "openers": ["ok.", "sure.", "fine.", "noted."],
+        "fillers": ["works", "good", "done"],
+        "closers": ["next.", "moving on.", "that's it.", "end."],
+        "topics": ["the task", "the item", "the thing", "the order", "the job", "the ask"],
+    },
+})
 
 
 def build_dataset(samples_per_author=10):

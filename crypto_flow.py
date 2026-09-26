@@ -41,6 +41,12 @@ MOCK_LEDGER = {
     "bc1qvypr0m1x3r5cash0ut9obscured8mixer7wasab":
         {"cluster": "C3", "cashout": {"vasp": "Wasabi CoinJoin", "type": "mixer",
                                        "risk": "Obscured (mixer) - flag for review"}},
+    "bc1qgar4nt3xch4ng3s4nct10n3dvasp7flagged9x": {
+        "cluster": "C4", "cashout": {"vasp": "Garantex (sanctioned)", "type": "sanctioned exchange",
+                                       "risk": "OFAC-sanctioned VASP - high-priority lead"}},
+    "bc1qp33lch41nl4y3r3dh0ps0bscur3dtr41l88mx": {
+        "cluster": "C5", "cashout": {"vasp": "peel-chain (7 hops)", "type": "layering",
+                                       "risk": "Structured layering detected - trace to terminal hop"}},
 }
 
 

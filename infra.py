@@ -55,8 +55,11 @@ MOCK_INFRA = {
         "cluster": "S2", "clearnet_ip": "45.132.192.13", "provider": "Hetzner (DE)",
         "misconfigs": [
             {"class": "Default service banner", "detail": "Apache/2.4.41 default \"It works!\" page exposed"},
+            {"class": "Leaked Apache mod_status", "detail": "/server-info exposed internal vhost + real IP 45.132.192.13"},
+            {"class": "Reused SSH host key", "detail": "RSA host key fingerprint matches a Shodan-indexed clearnet host"},
+            {"class": "Analytics/tracking ID reuse", "detail": "same self-hosted Matomo site-id as a clearnet storefront"},
         ],
-        "confidence": 0.82,
+        "confidence": 0.86,
     },
 }
 

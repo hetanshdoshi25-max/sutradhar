@@ -31,29 +31,40 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 from stylometry import StylometryEngine, style_ratios
+from cognitive import cognitive_vector, cognitive_similarity
 from build_dataset import build_dataset, build_pairs
 
 MODEL_PATH = "author_model.pkl"
-FEATURE_NAMES = ["char_ngrams", "function_words", "style_ratios_sim"] + [
-    f"style_diff_{i}" for i in range(12)
-]
+_N_STYLE = 19  # style_ratios now returns 19 dims
+FEATURE_NAMES = (["char_ngrams", "function_words", "style_ratios_sim", "cognitive_sim"]
+                 + [f"style_diff_{i}" for i in range(_N_STYLE)]
+                 + [f"cog_diff_{i}" for i in range(7)])
 
 
 def build_training_matrix(pairs, corpus_texts):
     """Fit ONE stylometry engine on the whole corpus (stable vocabulary /
-    IDF), then for every labeled pair combine (a) the 3 aggregate signal
-    similarities and (b) 12 raw per-dimension style-ratio differences -
-    richer, more discriminative feature set than similarity alone."""
+    IDF), then for every labeled pair combine: aggregate style + cognitive
+    similarities, plus raw per-dimension style AND cognitive differences -
+    a rich, discriminative feature set spanning surface style and deep
+    behavioural reasoning."""
     engine = StylometryEngine().fit(corpus_texts)
     text_to_idx = {t: i for i, t in enumerate(corpus_texts)}
     raw_ratios = {t: style_ratios(t) for t in corpus_texts}
+    cog_vecs = {t: np.array(cognitive_vector(t)) for t in corpus_texts}
 
     X, y = [], []
+    def cos(a, b):
+        na = (a @ a) ** 0.5; nb = (b @ b) ** 0.5
+        return float(a @ b / (na * nb)) if na and nb else 0.0
     for text_a, text_b, label in pairs:
         ia, ib = text_to_idx[text_a], text_to_idx[text_b]
         _, groups = engine.similarity(ia, ib)
-        diff = np.abs(raw_ratios[text_a] - raw_ratios[text_b])
-        feats = [groups["char_ngrams"], groups["function_words"], groups["style_ratios"]] + list(diff)
+        style_diff = np.abs(raw_ratios[text_a] - raw_ratios[text_b])
+        va, vb = cog_vecs[text_a], cog_vecs[text_b]
+        cog_diff = np.abs(va - vb)
+        cog_sim = cos(va, vb)
+        feats = ([groups["char_ngrams"], groups["function_words"], groups["style_ratios"], cog_sim]
+                 + list(style_diff) + list(cog_diff))
         X.append(feats)
         y.append(label)
     return np.array(X), np.array(y), engine
@@ -61,7 +72,7 @@ def build_training_matrix(pairs, corpus_texts):
 
 def train():
     print("1. Building labeled dataset...")
-    corpus = build_dataset(samples_per_author=100)
+    corpus = build_dataset(samples_per_author=65)
     pairs = build_pairs(corpus)
     corpus_texts = [c["text"] for c in corpus]
     print(f"   {len(pairs)} labeled pairs ({sum(p[2] for p in pairs)} same-author, "
@@ -78,8 +89,7 @@ def train():
     print("4. Training and comparing algorithms...")
     candidates = {
         "LogisticRegression": LogisticRegression(random_state=42, max_iter=500),
-        "RandomForest": RandomForestClassifier(n_estimators=300, max_depth=12, random_state=42, n_jobs=-1),
-        "GradientBoosting": GradientBoostingClassifier(n_estimators=200, max_depth=3, random_state=42),
+        "RandomForest": RandomForestClassifier(n_estimators=220, max_depth=16, min_samples_leaf=3, random_state=42, n_jobs=-1),
     }
     best_name, best_clf, best_acc = None, None, -1
     for name, clf in candidates.items():
@@ -127,8 +137,11 @@ def predict_same_author(text_a, text_b, model=None, background_corpus=None):
     eng = StylometryEngine().fit(texts)
     ia, ib = len(texts) - 2, len(texts) - 1
     _, groups = eng.similarity(ia, ib)
-    diff = np.abs(style_ratios(text_a) - style_ratios(text_b))
-    feats = np.array([[groups["char_ngrams"], groups["function_words"], groups["style_ratios"]] + list(diff)])
+    style_diff = np.abs(style_ratios(text_a) - style_ratios(text_b))
+    cog_diff = np.abs(np.array(cognitive_vector(text_a)) - np.array(cognitive_vector(text_b)))
+    cog_sim = cognitive_similarity(text_a, text_b)
+    feats = np.array([[groups["char_ngrams"], groups["function_words"], groups["style_ratios"], cog_sim]
+                      + list(style_diff) + list(cog_diff)])
     proba = model.predict_proba(feats)[0][1]
     return bool(model.predict(feats)[0]), round(float(proba), 3)
 

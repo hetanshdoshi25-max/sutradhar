@@ -31,26 +31,54 @@ FUNCTION_WORDS = [
     "my", "your", "his", "its", "our", "their", "this", "that", "these",
     "those", "not", "no", "so", "just", "very", "really", "actually", "basically",
     "however", "though", "because", "while", "then", "than", "also", "too",
+    "some", "any", "all", "more", "most", "such", "only", "even", "still",
+    "here", "there", "when", "where", "what", "which", "who", "how", "why",
+    "get", "got", "make", "like", "want", "need", "know", "think", "gonna",
+    "yeah", "yep", "nah", "lol", "tbh", "ngl", "imo", "idk", "btw", "fr",
 ]
 
 
 def style_ratios(text: str) -> np.ndarray:
-    """Group 3: hand-crafted style ratios. Each is normalised so length
-    of the text doesn't dominate. Returns a small fixed-size vector."""
+    """Group 3: hand-crafted style ratios and lexical-richness measures.
+    Each is normalised so text length doesn't dominate. Explainable, and
+    collectively a strong authorship signal."""
     n_chars = max(len(text), 1)
     words = re.findall(r"[A-Za-z']+", text)
     n_words = max(len(words), 1)
+    lower_words = [w.lower() for w in words]
     sentences = [s for s in re.split(r"[.!?]+", text) if s.strip()]
     n_sent = max(len(sentences), 1)
+    word_lens = [len(w) for w in words]
 
     def rate(pattern):
         return len(re.findall(pattern, text)) / n_chars
 
-    avg_word_len = sum(len(w) for w in words) / n_words
-    avg_sent_len = n_words / n_sent                      # words per sentence
-    type_token = len(set(w.lower() for w in words)) / n_words  # vocab richness
+    avg_word_len = sum(word_lens) / n_words
+    avg_sent_len = n_words / n_sent
+    # sentence-length variability (burstiness) — very personal
+    sent_word_counts = [len(re.findall(r"[A-Za-z']+", s)) for s in sentences] or [0]
+    mean_sc = sum(sent_word_counts) / len(sent_word_counts)
+    sent_len_var = (sum((x - mean_sc) ** 2 for x in sent_word_counts) / len(sent_word_counts)) ** 0.5
+    sent_len_cv = sent_len_var / mean_sc if mean_sc else 0
+
+    # lexical richness
+    vocab = set(lower_words)
+    type_token = len(vocab) / n_words
+    freq = {}
+    for w in lower_words:
+        freq[w] = freq.get(w, 0) + 1
+    hapax = sum(1 for w, c in freq.items() if c == 1) / n_words   # once-only words
+    dis = sum(1 for w, c in freq.items() if c == 2) / n_words     # twice-only words
+
+    # word-length distribution buckets (share of short/medium/long words)
+    short_w = sum(1 for l in word_lens if l <= 3) / n_words
+    med_w = sum(1 for l in word_lens if 4 <= l <= 6) / n_words
+    long_w = sum(1 for l in word_lens if l >= 7) / n_words
+
     uppercase_rate = sum(1 for c in text if c.isupper()) / n_chars
     digit_rate = sum(1 for c in text if c.isdigit()) / n_chars
+    # repeated-punctuation habit (!!, ..., ??) — a strong personal tell
+    emphatic = len(re.findall(r"([!?.])\1{1,}", text)) / n_sent
 
     return np.array([
         rate(r","),      # comma rate
@@ -62,9 +90,14 @@ def style_ratios(text: str) -> np.ndarray:
         rate(r"\s"),     # whitespace rate (spacing habit)
         avg_word_len / 10.0,
         avg_sent_len / 30.0,
-        type_token,
+        sent_len_cv,             # sentence-length variability
+        type_token,              # vocab richness
+        hapax,                   # hapax legomena ratio
+        dis,                     # dis legomena ratio
+        short_w, med_w, long_w,  # word-length distribution
         uppercase_rate,
         digit_rate,
+        emphatic,                # repeated-punctuation habit
     ], dtype=float)
 
 

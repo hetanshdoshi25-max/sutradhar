@@ -24,6 +24,7 @@ needs (explainable, not a black box).
 
 
 SIGNAL_PHRASES = {
+    "cognitive":       "a matching behavioural-reasoning fingerprint (robust to AI-rephrasing)",
     "style_ratios":    "a near-identical writing style",
     "char_ngrams":     "matching character-level spelling and spacing habits",
     "function_words":  "the same unconscious use of common function words",
@@ -59,7 +60,7 @@ def summarize_edge(edge, nodes):
     ev = edge["evidence"]
     score = edge["score"]
 
-    present = [k for k in ("style_ratios", "activity_pattern", "persona_reuse",
+    present = [k for k in ("style_ratios", "cognitive", "activity_pattern", "persona_reuse",
                            "crypto_flow", "infra") if k in ev]
     reasons = [SIGNAL_PHRASES[k] for k in present if k in SIGNAL_PHRASES]
 

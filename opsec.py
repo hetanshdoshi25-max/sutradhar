@@ -18,8 +18,9 @@ PHONE_RE = re.compile(r"\+\d[\d\s-]{8,}\d|\b\d{3}[\s-]\d{3}[\s-]\d{4}\b|\b\d{10}
 
 # how dangerous each leak type is to the operator (0..1)
 SEVERITY = {
-    "email": 0.9, "phone": 0.9, "btc": 0.8, "eth": 0.8,
-    "pgp": 0.55, "onion": 0.5, "handle": 0.35,
+    "email": 0.9, "phone": 0.9, "btc": 0.8, "eth": 0.8, "monero": 0.75,
+    "pgp": 0.55, "onion": 0.5, "session": 0.7, "tox": 0.7, "jabber": 0.8,
+    "handle": 0.35,
 }
 
 
