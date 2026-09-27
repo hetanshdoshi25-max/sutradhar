@@ -123,34 +123,38 @@
   @media (max-width:860px){ .signals{grid-template-columns:1fr} .foot .grid{grid-template-columns:1fr} .flowpin{height:auto;padding:60px 0} }
   :focus-visible{outline:2px solid var(--signal);outline-offset:3px}
   @media (prefers-reduced-motion:reduce){ .line>span,.word>span{transform:none} .rv{opacity:1;transform:none} }
+  .ddi{display:block;padding:11px 14px;color:var(--paper);text-decoration:none;font-family:"Archivo",sans-serif;font-size:14.5px;font-weight:600;border-radius:8px;transition:background .15s}
+  .ddi:hover{background:rgba(242,169,59,.12);color:var(--signal)}
 </style>
 </head>
 <body>
 
 <div id="pre"><div class="lbl">SUTRADHAR<i>.</i></div><div class="num" id="plnum">0</div><div class="bar" id="plbar"></div></div>
 <div class="cdot"></div><div class="cring"></div>
+
 <canvas id="net"></canvas>
 <div class="veil"></div>
 
 <header class="top">
   <div class="wrap">
     <span class="mark">SUTRADHAR<i>.</i></span>
-    <div style="display:flex;align-items:center;gap:16px">
-      <a class="btn btn-solid" href="https://web-production-9880e1.up.railway.app/" target="_blank" rel="noopener" style="font-size:13px;padding:9px 18px;text-decoration:none">&#9654; Live Prototype</a>
+    <div style="display:flex;align-items:center;gap:14px">
+      <a class="navlink magnetic" href="https://web-production-9880e1.up.railway.app/" target="_blank" rel="noopener" style="color:var(--signal);border-color:rgba(242,169,59,.4)">Live prototype</a>
       <div id="ddWrap" style="position:relative">
-        <button id="ddBtn" onclick="toggleDD()" style="background:rgba(236,231,219,.07);border:1px solid rgba(236,231,219,.15);border-radius:8px;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;padding:0">
+        <button id="ddBtn" onclick="toggleDD(event)" aria-label="menu" style="background:rgba(236,231,219,.06);border:1px solid rgba(236,231,219,.16);border-radius:9px;width:42px;height:42px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5px;padding:0">
           <span style="width:4px;height:4px;border-radius:50%;background:var(--paper);display:block"></span>
           <span style="width:4px;height:4px;border-radius:50%;background:var(--paper);display:block"></span>
           <span style="width:4px;height:4px;border-radius:50%;background:var(--paper);display:block"></span>
         </button>
-        <div id="ddMenu" style="display:none;position:absolute;right:0;top:calc(100% + 10px);background:#111a2b;border:1px solid rgba(236,231,219,.12);border-radius:10px;padding:8px;min-width:190px;box-shadow:0 16px 48px rgba(0,0,0,.6);z-index:200">
-          <a href="#ps" onclick="closeDD()" style="display:block;padding:10px 14px;color:var(--paper);text-decoration:none;font-family:Archivo,sans-serif;font-size:14px;font-weight:600;border-radius:6px" onmouseover="this.style.background='rgba(242,169,59,.1)'" onmouseout="this.style.background='transparent'">PS Requirements</a>
-          <a href="#signals" onclick="closeDD()" style="display:block;padding:10px 14px;color:var(--paper);text-decoration:none;font-family:Archivo,sans-serif;font-size:14px;font-weight:600;border-radius:6px" onmouseover="this.style.background='rgba(242,169,59,.1)'" onmouseout="this.style.background='transparent'">8 Signals</a>
-          <a href="#fbi" onclick="closeDD()" style="display:block;padding:10px 14px;color:var(--paper);text-decoration:none;font-family:Archivo,sans-serif;font-size:14px;font-weight:600;border-radius:6px" onmouseover="this.style.background='rgba(242,169,59,.1)'" onmouseout="this.style.background='transparent'">FBI Example</a>
-          <a href="#crawling" onclick="closeDD()" style="display:block;padding:10px 14px;color:var(--paper);text-decoration:none;font-family:Archivo,sans-serif;font-size:14px;font-weight:600;border-radius:6px" onmouseover="this.style.background='rgba(242,169,59,.1)'" onmouseout="this.style.background='transparent'">Live Crawling</a>
-          <div style="height:1px;background:rgba(236,231,219,.1);margin:4px 8px"></div>
-          <a href="#exports" onclick="closeDD()" style="display:block;padding:10px 14px;color:var(--paper);text-decoration:none;font-family:Archivo,sans-serif;font-size:14px;font-weight:600;border-radius:6px" onmouseover="this.style.background='rgba(242,169,59,.1)'" onmouseout="this.style.background='transparent'">PDF / JSON / CSV</a>
-          <a href="#" id="ghLinkNav" style="display:block;padding:10px 14px;color:var(--muted);text-decoration:none;font-family:Archivo,sans-serif;font-size:14px;font-weight:600;border-radius:6px" onmouseover="this.style.background='rgba(242,169,59,.1)'" onmouseout="this.style.background='transparent'">GitHub →</a>
+        <div id="ddMenu" style="display:none;position:absolute;right:0;top:calc(100% + 10px);background:#111a2b;border:1px solid rgba(236,231,219,.12);border-radius:12px;padding:8px;min-width:200px;box-shadow:0 20px 56px rgba(0,0,0,.6);z-index:300">
+          <a href="#ps" onclick="closeDD()" class="ddi">PS requirements</a>
+          <a href="#how" onclick="closeDD()" class="ddi">The 8 signals</a>
+          <a href="#fbi" onclick="closeDD()" class="ddi">FBI example</a>
+          <a href="#crawling" onclick="closeDD()" class="ddi">Live crawling</a>
+          <a href="#exports" onclick="closeDD()" class="ddi">PDF / JSON / CSV</a>
+          <div style="height:1px;background:rgba(236,231,219,.1);margin:5px 8px"></div>
+          <a href="#build" onclick="closeDD()" class="ddi">Run the prototype</a>
+          <a href="#" id="ghLinkNav" class="ddi" style="color:var(--muted)">GitHub</a>
         </div>
       </div>
     </div>
@@ -159,332 +163,156 @@
 
 <section class="hero">
   <div class="wrap">
-    <span class="kicker" id="hkick" style="opacity:0">PS SIH26151 · NTRO · Dark-web Threat-Actor De-anonymization</span>
+    <span class="kicker" id="hkick" style="opacity:0">PS SIH26151 · NTRO · Dark-web threat-actor de-anonymization</span>
     <h1 class="disp"><span class="line"><span>Eight signals.</span></span><span class="line"><span>One identity.</span></span></h1>
-    <p class="lede" id="hlede" style="opacity:0">SUTRADHAR fuses writing style, behavioural reasoning, activity timing, shared identifiers, OPSEC leaks, crypto flow, infrastructure misconfigs, and evasion patterns into one explainable confidence score — and a court-ready case file.</p>
+    <p class="lede" id="hlede" style="opacity:0">SUTRADHAR links anonymous personas to a single identity across eight independent signals - writing style, behavioural reasoning, timing, identifiers, OPSEC, crypto, infrastructure, and evasion - and shows the evidence behind every link.</p>
     <div class="cta-row" id="hcta" style="opacity:0">
-      <a class="btn btn-solid magnetic" href="https://web-production-9880e1.up.railway.app/" target="_blank" rel="noopener">▶ Open Live Prototype</a>
-      <a class="btn btn-ghost magnetic" href="#ps">See PS Requirements</a>
+      <a class="btn btn-solid magnetic" href="https://web-production-9880e1.up.railway.app/" target="_blank" rel="noopener">Open live prototype</a>
+      <a class="btn btn-ghost magnetic" href="#how">See how it works</a>
     </div>
   </div>
   <div class="scrollcue" id="hcue" style="opacity:0">SCROLL</div>
 </section>
 
 <div class="marq"><div class="track" id="marq">
-  <span class="item">Stylometry</span><span class="dot">✦</span><span class="item o">Cognitive Fingerprint</span><span class="dot">✦</span><span class="item">Temporal</span><span class="dot">✦</span><span class="item o">Persona Reuse</span><span class="dot">✦</span><span class="item">OPSEC</span><span class="dot">✦</span><span class="item o">Crypto Flow</span><span class="dot">✦</span><span class="item">Infrastructure</span><span class="dot">✦</span><span class="item o">Evasion Meta</span><span class="dot">✦</span>
-  <span class="item">Stylometry</span><span class="dot">✦</span><span class="item o">Cognitive Fingerprint</span><span class="dot">✦</span><span class="item">Temporal</span><span class="dot">✦</span><span class="item o">Persona Reuse</span><span class="dot">✦</span><span class="item">OPSEC</span><span class="dot">✦</span><span class="item o">Crypto Flow</span><span class="dot">✦</span><span class="item">Infrastructure</span><span class="dot">✦</span><span class="item o">Evasion Meta</span><span class="dot">✦</span>
+  <span class="item">Stylometry</span><span class="dot">✦</span><span class="item o">Temporal</span><span class="dot">✦</span><span class="item">Knowledge graph</span><span class="dot">✦</span><span class="item o">Evidence</span><span class="dot">✦</span><span class="item">Attribution</span><span class="dot">✦</span>
+  <span class="item">Stylometry</span><span class="dot">✦</span><span class="item o">Temporal</span><span class="dot">✦</span><span class="item">Knowledge graph</span><span class="dot">✦</span><span class="item o">Evidence</span><span class="dot">✦</span><span class="item">Attribution</span><span class="dot">✦</span>
 </div></div>
 
 <div class="sheet">
-
-<!-- ============ PS REQUIREMENTS ============ -->
-<section class="sec" id="ps">
-  <div class="wrap">
-    <span class="kicker rv">PS SIH26151 · NTRO</span>
-    <h2 class="disp split">Problem Statement Requirements</h2>
-    <p class="intro rv">Every requirement listed in PS SIH26151 is implemented and demoable. No roadmap items.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px" class="rv">
-
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-left:3px solid var(--signal);border-radius:10px;padding:20px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:700;color:var(--signal);font-size:12px;letter-spacing:1.5px;margin-bottom:10px">PS REQUIREMENT 01</div>
-        <div style="font-weight:700;font-size:17px;margin-bottom:8px">AI-based persona correlation</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7">Automated multi-signal analysis links anonymous aliases to a single identity. RandomForest classifier trained on 58,240 labeled pairs achieves <strong style="color:var(--paper)">94.1% accuracy</strong> on a 14-author benchmark.</div>
-        <div style="margin-top:12px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">✓ IMPLEMENTED — LIVE IN PROTOTYPE</div>
+  <section class="sec" id="problem">
+    <div class="wrap">
+      <span class="kicker rv">The problem</span>
+      <h2 class="disp split">Attribution is the bottleneck</h2>
+      <p class="intro rv">A single threat actor runs many aliases across many forums. Watching them is easy; proving that three usernames are one person is not; it takes an analyst weeks of manual cross-referencing.</p>
+      <div class="stat">
+        <span class="big" id="lossNum">₹0</span>
+        <span class="cap rv">crore lost to cyber-fraud in India in 2024, a 206% jump in a single year. Faster attribution is how those cases get solved.</span>
       </div>
-
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-left:3px solid var(--signal);border-radius:10px;padding:20px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:700;color:var(--signal);font-size:12px;letter-spacing:1.5px;margin-bottom:10px">PS REQUIREMENT 02</div>
-        <div style="font-weight:700;font-size:17px;margin-bottom:8px">Stylometric persona identification</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7">19-feature stylometry engine: char n-gram TF-IDF, 65+ function words, hapax legomena, sentence-length variability, word-length distribution, lexical richness — a writing fingerprint that a new alias cannot reset.</div>
-        <div style="margin-top:12px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">✓ IMPLEMENTED — LIVE IN PROTOTYPE</div>
-      </div>
-
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-left:3px solid var(--signal);border-radius:10px;padding:20px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:700;color:var(--signal);font-size:12px;letter-spacing:1.5px;margin-bottom:10px">PS REQUIREMENT 03</div>
-        <div style="font-weight:700;font-size:17px;margin-bottom:8px">Behavioural profiling of rebranded personas</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7"><strong style="color:var(--paper)">Cognitive Fingerprint</strong> — a 7-dimensional behavioural-reasoning vector (hedging, certainty, causal density, contrast, risk-frame, opportunity-frame, deductive lean) that is <strong style="color:var(--paper)">resistant to AI rephrasing</strong>. The most novel signal in the system.</div>
-        <div style="margin-top:12px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">✓ IMPLEMENTED — LIVE IN PROTOTYPE</div>
-      </div>
-
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-left:3px solid var(--signal);border-radius:10px;padding:20px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:700;color:var(--signal);font-size:12px;letter-spacing:1.5px;margin-bottom:10px">PS REQUIREMENT 04</div>
-        <div style="font-weight:700;font-size:17px;margin-bottom:8px">Infrastructure fingerprint correlation</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7">Four misconfig classes: exposed server-status page leaking real IP, SSL certificate tied to clearnet domain, default service banner, Tor descriptor inconsistency. Onion service matched to clearnet host.</div>
-        <div style="margin-top:12px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">✓ IMPLEMENTED — LIVE IN PROTOTYPE</div>
-      </div>
-
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-left:3px solid var(--signal);border-radius:10px;padding:20px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:700;color:var(--signal);font-size:12px;letter-spacing:1.5px;margin-bottom:10px">PS REQUIREMENT 05</div>
-        <div style="font-weight:700;font-size:17px;margin-bottom:8px">Autonomous monitoring & continuous gathering</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7">Background scheduler polls configured sources and auto-ingests newly discovered personas with source, category, and timestamp. Runs continuously without analyst intervention.</div>
-        <div style="margin-top:12px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">✓ IMPLEMENTED — LIVE IN PROTOTYPE</div>
-      </div>
-
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-left:3px solid var(--signal);border-radius:10px;padding:20px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:700;color:var(--signal);font-size:12px;letter-spacing:1.5px;margin-bottom:10px">PS REQUIREMENT 06</div>
-        <div style="font-weight:700;font-size:17px;margin-bottom:8px">Court-admissible evidence & audit trail</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7">SHA-256 hash-chained audit log — every action cryptographically linked; any tampering is detectable. PDF report cites BSA Sec 63 / IT Act 65B / ISO/IEC 27037. AES-256 encryption at rest.</div>
-        <div style="margin-top:12px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">✓ IMPLEMENTED — LIVE IN PROTOTYPE</div>
-      </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============ 8 SIGNALS ============ -->
-<section class="sec" id="signals">
-  <div class="wrap">
-    <span class="kicker rv">Attribution Engine</span>
-    <h2 class="disp split">8 Independent Signals</h2>
-    <p class="intro rv">Each signal is independent. Even if a threat actor defeats one — AI-rephrasing, wallet mixers, Tor — the remaining seven still hold. That redundancy is what makes SUTRADHAR court-worthy.</p>
-    <div class="signals" style="margin-top:32px">
-
-      <div class="sig rv" style="border-left:3px solid var(--signal)">
-        <div class="n">01 · Stylometry</div>
-        <div class="d">19 features extracted per text: character n-gram TF-IDF (2–4 grams), 65+ function-word rates, comma/period/exclamation rates, avg word length, sentence-length coefficient of variation, hapax legomena ratio, type-token ratio, word-length distribution (short/medium/long buckets), uppercase rate, emphatic punctuation habit. Two texts are compared by cosine similarity in vector space — fully explainable, no black box.</div>
-        <span class="flag live">Live</span>
+  <section class="sec" id="how">
+    <div class="wrap">
+      <span class="kicker rv">How it works</span>
+      <h2 class="disp split">One person can't hide every habit</h2>
+      <p class="intro rv">People carry unconscious tells that survive a username change: how they punctuate, which filler words they reach for, the hours they're awake. SUTRADHAR reads independent signals and fuses them into one knowledge graph.</p>
+      <div class="signals">
+        <div class="sig rv"><div class="n">Writing style</div><div class="d">19-feature stylometry: char n-grams, function words, hapax legomena, sentence variance. A fingerprint a new alias can't reset.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">Cognitive fingerprint</div><div class="d">A 7-D reasoning-style vector that survives AI rephrasing. Catches rebranded personas no other tool can.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">Activity pattern</div><div class="d">Circadian histogram plus shape descriptors: spread, peakedness, nocturnal index, regularity.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">Persona reuse</div><div class="d">10 identifier types: PGP, BTC, ETH, Monero, Session ID, Tox, Jabber, onion, handle. Exact-match, no ML needed.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">OPSEC exposure</div><div class="d">Self-leaked contact details scored by severity, from Critical down to Low. A direct investigative lead.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">Crypto flow</div><div class="d">UTXO co-spend clustering. Cash-out traced to a KYC exchange, mixer, or OFAC-sanctioned VASP.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">Infrastructure</div><div class="d">Four onion-to-clearnet misconfig classes: server-status leak, SSL cert reuse, default banner, descriptor overlap.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">Evasion meta-signal</div><div class="d">When a persona is suspiciously clean, that discipline is itself a signal, flagging a trained operator.</div><span class="flag live">Live</span></div>
       </div>
-
-      <div class="sig rv" style="border-left:3px solid #7c9ac9">
-        <div class="n">02 · Cognitive Fingerprint ★ Novel</div>
-        <div class="d">A 7-D behavioural-reasoning vector that fingerprints HOW a person thinks, not which words they pick. Dimensions: hedging language rate, certainty language rate, causal-connective density, contrast pivot rate, risk-frame vs opportunity-frame, deductive-lean score (conclusion-first vs evidence-first). An AI rewriter changes surface words but preserves the author's reasoning architecture — making this signal paraphrase-resistant. No existing attribution tool implements this.</div>
-        <span class="flag live">Live · AI-rephrase resistant</span>
-      </div>
-
-      <div class="sig rv" style="border-left:3px solid var(--signal)">
-        <div class="n">03 · Temporal Activity Pattern</div>
-        <div class="d">A 24-bin normalised histogram of posting hours, blended with circadian shape descriptors: spread (how many hours-of-day are active), peakedness (concentration in top hour), nocturnal index (00:00–06:00 + 22:00–24:00 share), and regularity (inverse of hour-to-hour variance). Real people have involuntary rhythms. Blend = 75% histogram cosine + 25% shape similarity.</div>
-        <span class="flag live">Live</span>
-      </div>
-
-      <div class="sig rv" style="border-left:3px solid #7c9ac9">
-        <div class="n">04 · Persona Reuse</div>
-        <div class="d">10 identifier types extracted by regex: email, Bitcoin (legacy + bech32), Ethereum, Monero, PGP key ID (8/16 hex), .onion address, Session messenger ID (64-char hex), Tox ID (76-char hex), Jabber/XMPP handle, @handle. A shared PGP key across two aliases is near-certain same-operator evidence — no ML needed, exact match.</div>
-        <span class="flag live">Live · 10 identifier types</span>
-      </div>
-
-      <div class="sig rv" style="border-left:3px solid var(--signal)">
-        <div class="n">05 · OPSEC Exposure</div>
-        <div class="d">Scans text for self-leaked contact details and scores their severity: email (0.9), phone (0.9), BTC wallet (0.8), ETH wallet (0.8), Monero (0.75), Jabber (0.8), Session ID (0.7), Tox ID (0.7), PGP (0.55), onion (0.5), @handle (0.35). Risk level: Critical / High / Medium / Low. A "Critical" leak is a direct investigative lead — subpoena the carrier or exchange.</div>
-        <span class="flag live">Live</span>
-      </div>
-
-      <div class="sig rv" style="border-left:3px solid #7c9ac9">
-        <div class="n">06 · Crypto Flow</div>
-        <div class="d">UTXO multi-input co-spend clustering: wallets that appear together as inputs to a transaction are likely controlled by the same operator. Cash-out destination reveals the exchange: Binance (KYC, subpoena target), Coinbase (KYC), Wasabi CoinJoin (mixer, flag for enhanced review), Garantex (OFAC-sanctioned, high-priority lead), or peel-chain layering (structured obfuscation, trace to terminal hop).</div>
-        <span class="flag live">Live · 5 cluster types</span>
-      </div>
-
-      <div class="sig rv" style="border-left:3px solid var(--signal)">
-        <div class="n">07 · Infrastructure Fingerprint</div>
-        <div class="d">Four misconfig classes that de-anonymise a Tor hidden service: (1) exposed /server-status page — reveals real IP and internal vhosts; (2) SSL certificate tied to a clearnet domain — links .onion to a registered identity; (3) default service banner — same Apache/nginx "It works!" page as a Shodan-indexed clearnet host; (4) Tor descriptor inconsistency — two onion addresses sharing introduction points = same physical server. Technique used in the 2013 Silk Road takedown.</div>
-        <span class="flag live">Live · 4 misconfig classes</span>
-      </div>
-
-      <div class="sig rv" style="border-left:3px solid #7c9ac9">
-        <div class="n">08 · Evasion Meta-Signal</div>
-        <div class="d">Inverse logic: when a persona is suspiciously clean, that discipline is itself a signal. Three tells of deliberate anti-forensic behaviour: zero-identifier discipline (substantial text volume with no leaked identifier of any kind); unnaturally uniform sentence structure (coefficient of variation below 0.30, consistent with AI-smoothing or deliberate neutralisation); scheduled posting pattern (hour-of-day standard deviation below 0.8, consistent with automation). A "Professional" evasion score flags a trained operator — higher-priority target than a careless one.</div>
-        <span class="flag live">Live · Detects trained operators</span>
-      </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============ FBI EXAMPLE ============ -->
-<section class="sec" id="fbi">
-  <div class="wrap">
-    <span class="kicker rv">Real-world validation</span>
-    <h2 class="disp split">How the FBI caught Ross Ulbricht — and how SUTRADHAR automates it</h2>
-    <p class="intro rv">The 2013 Silk Road takedown is the most documented example of dark-web de-anonymization in history. Every signal the FBI used manually over months, SUTRADHAR applies automatically in minutes.</p>
-
-    <div style="background:#131f33;border:1px solid rgba(236,231,219,.12);border-radius:12px;padding:28px 32px;margin:32px 0" class="rv">
-      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;color:var(--signal);margin-bottom:18px">THE SILK ROAD CASE · 2011–2013</div>
-      <p style="color:var(--muted);font-size:15px;line-height:1.8;margin-bottom:16px">Ross Ulbricht ran Silk Road — a $1.2 billion dark-web marketplace — under the alias <strong style="color:var(--paper)">Dread Pirate Roberts</strong>. He was unmasked not by breaking Tor, but because he left exactly the kinds of traces SUTRADHAR is designed to find:</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px">
-        <div style="background:#0f2030;border-radius:8px;padding:16px;border-left:3px solid #e2645f">
-          <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;color:#e2645f;letter-spacing:1px;margin-bottom:8px">SIGNAL 02 · STYLOMETRY</div>
-          <div style="font-size:14px;color:var(--muted);line-height:1.7">A post by "altoid" on a Bitcoin forum in 2011 said <em style="color:var(--paper)">"I'm looking for a great programmer"</em> — same writing style as DPR's private messages. FBI linguists matched the idiolect.</div>
-        </div>
-        <div style="background:#0f2030;border-radius:8px;padding:16px;border-left:3px solid #e2645f">
-          <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;color:#e2645f;letter-spacing:1px;margin-bottom:8px">SIGNAL 04 · PERSONA REUSE</div>
-          <div style="font-size:14px;color:var(--muted);line-height:1.7">The "altoid" account used <strong style="color:var(--paper)">rossulbricht@gmail.com</strong> as a contact email in one post — a direct identifier linking the alias to a real identity. One slip, caught years later.</div>
-        </div>
-        <div style="background:#0f2030;border-radius:8px;padding:16px;border-left:3px solid #e2645f">
-          <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;color:#e2645f;letter-spacing:1px;margin-bottom:8px">SIGNAL 07 · INFRASTRUCTURE</div>
-          <div style="font-size:14px;color:var(--muted);line-height:1.7">The Silk Road login page had a misconfigured CAPTCHA that pointed to a real IP address (<strong style="color:var(--paper)">173.11.x.x</strong>) rather than routing through Tor — a classic server misconfiguration. This was the direct lead that identified the server's location.</div>
-        </div>
-        <div style="background:#0f2030;border-radius:8px;padding:16px;border-left:3px solid #e2645f">
-          <div style="font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;color:#e2645f;letter-spacing:1px;margin-bottom:8px">SIGNAL 06 · CRYPTO FLOW</div>
-          <div style="font-size:14px;color:var(--muted);line-height:1.7">Bitcoin wallets tied to Silk Road commissions were traced through the blockchain. When Ulbricht was arrested, <strong style="color:var(--paper)">144,000 BTC</strong> was seized — the largest cryptocurrency seizure at the time, traced via UTXO analysis.</div>
+  <section class="sec" id="flowsec">
+    <div class="wrap flowpin" id="flowpin">
+      <div class="inner">
+        <span class="kicker">The pipeline</span>
+        <h2 class="disp" style="font-size:clamp(28px,4.2vw,46px);margin-top:10px">From raw clue to a named actor</h2>
+        <div class="flowsteps">
+          <div class="fstep" data-i="0"><div class="k">01</div><div class="t">Anonymous personas</div><div class="s">Text and posting times from many aliases across sites.</div></div>
+          <div class="fstep" data-i="1"><div class="k">02</div><div class="t">Signals extracted</div><div class="s">Writing style and activity pattern turned into fingerprints.</div></div>
+          <div class="fstep" data-i="2"><div class="k">03</div><div class="t">Knowledge graph</div><div class="s">Personas linked by weighted, evidence-scored edges.</div></div>
+          <div class="fstep" data-i="3"><div class="k">04</div><div class="t">Identity + confidence</div><div class="s">One named actor behind the masks, with a case file.</div></div>
         </div>
       </div>
-      <div style="margin-top:20px;padding:16px;background:rgba(242,169,59,.08);border:1px solid rgba(242,169,59,.25);border-radius:8px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:700;color:var(--signal);font-size:13px;margin-bottom:6px">WHAT TOOK THE FBI MONTHS — SUTRADHAR DOES IN MINUTES</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7">The FBI cross-referenced forum posts, Bitcoin ledgers, and server logs across multiple agencies over two years. SUTRADHAR runs all four of those signals (plus four more) simultaneously, fuses them into a single confidence score, and generates a court-ready case file with one click.</div>
-      </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--muted)">Sources: U.S. v. Ulbricht (2015) · FBI criminal complaint · Wired "The Rise & Fall of Silk Road" · DEA case documentation</div>
     </div>
+  </section>
 
-    <!-- Pipeline walkthrough with the FBI example -->
-    <div style="margin-top:40px" class="rv">
-      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;color:var(--slate);margin-bottom:24px">HOW SUTRADHAR WOULD HAVE PROCESSED THIS CASE</div>
-      <div class="flowsteps">
-        <div class="fstep" data-i="0"><div class="k">01</div><div class="t">Crawl forums</div><div class="s">Live crawler discovers "altoid" posts on Bitcoin Talk, "DPR" posts on Silk Road forum. Both ingested automatically.</div></div>
-        <div class="fstep" data-i="1"><div class="k">02</div><div class="t">Extract 8 signals</div><div class="s">Writing style matched. Email identifier rossulbricht@gmail.com found. Infrastructure IP leaked. Bitcoin wallets co-clustered.</div></div>
-        <div class="fstep" data-i="2"><div class="k">03</div><div class="t">Knowledge graph</div><div class="s">altoid ↔ DPR linked at 91% confidence. 4 independent signals corroborate. No single point of failure.</div></div>
-        <div class="fstep" data-i="3"><div class="k">04</div><div class="t">Court-ready output</div><div class="s">PDF with legal citations, SHA-256 audit trail, subpoena target (Google for the Gmail), and crypto seizure lead — in under 4 hours.</div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ LIVE CRAWLING ============ -->
-<section class="sec" id="crawling">
-  <div class="wrap">
-    <span class="kicker rv">Live Crawling Architecture</span>
-    <h2 class="disp split">Real crawling. Safe target.</h2>
-    <p class="intro rv">SUTRADHAR performs genuine HTTP crawling — real requests, real HTML parsing, real breadth-first link discovery. The target is a simulated dark-web marketplace we built ourselves, not a live .onion site.</p>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px" class="rv">
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-radius:12px;padding:24px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;color:#5fd89a;margin-bottom:16px">WHAT IS REAL</div>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:#5fd89a">✓</span>Real HTTP requests (urllib, no Tor)</li>
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:#5fd89a">✓</span>Real HTML parsing and regex extraction</li>
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:#5fd89a">✓</span>Real breadth-first link traversal</li>
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:#5fd89a">✓</span>61 pages across 5 distinct marketplaces</li>
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:#5fd89a">✓</span>Polite delay (0.08s), audit-logged</li>
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:#5fd89a">✓</span>Discovered personas feed directly into attribution pipeline</li>
-        </ul>
-      </div>
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-radius:12px;padding:24px">
-        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;color:var(--signal);margin-bottom:16px">WHY A REPLICA, NOT A REAL .ONION</div>
-        <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:12px">Crawling live dark-web marketplaces without prior authorization exposes an investigative tool to three legal and operational risks:</p>
-        <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px">
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">1</span>Unauthorized access to a computer system (IT Act Sec 43)</li>
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">2</span>Accidental exposure to CSAM or weapons listings without an interception warrant</li>
-          <li style="font-size:14px;color:var(--muted);padding-left:20px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">3</span>Evidence tainted by collection outside lawful process — inadmissible in court</li>
-        </ul>
-        <div style="margin-top:14px;padding:12px;background:rgba(242,169,59,.08);border-radius:6px;font-size:13px;color:var(--signal)">In production, NTRO would point the same crawler at authorized OSINT feeds or court-sanctioned targets. The data-source is a config change — the crawling architecture is identical.</div>
+  <section class="sec" id="evidence">
+    <div class="wrap">
+      <span class="kicker rv">Explainability</span>
+      <h2 class="disp split">Not a black box</h2>
+      <p class="intro rv">Every link comes with its reasons. An investigator can see exactly which habits matched before acting on a lead, and the score is a lead, never a verdict.</p>
+      <div class="ev rv" id="evCard">
+        <div style="font-family:'Archivo',sans-serif;font-weight:700;margin-bottom:6px">cipher9 &harr; m4trix</div>
+        <div class="row"><div class="lab"><span>Character patterns</span><span>59%</span></div><div class="track"><div class="fill" data-w="59"></div></div></div>
+        <div class="row"><div class="lab"><span>Cognitive fingerprint</span><span>72%</span></div><div class="track"><div class="fill" data-w="72"></div></div></div>
+        <div class="row"><div class="lab"><span>Style ratios</span><span>99%</span></div><div class="track"><div class="fill" data-w="99"></div></div></div>
+        <div class="row"><div class="lab"><span>Active-hours overlap</span><span>96%</span></div><div class="track"><div class="fill hot" data-w="96"></div></div></div>
+        <div class="row"><div class="lab"><span>Shared handle reuse</span><span>95%</span></div><div class="track"><div class="fill hot" data-w="95"></div></div></div>
+        <div class="blend">Blended confidence <b>85%</b> &nbsp;<span style="color:var(--muted);font-weight:500;font-size:14px">both active 20:00-01:00</span></div>
       </div>
     </div>
+  </section>
 
-    <div style="margin-top:24px;background:#131f33;border:1px solid rgba(124,154,201,.25);border-radius:12px;padding:24px" class="rv">
-      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;color:var(--slate);margin-bottom:16px">OUR SIMULATED MARKETPLACE NETWORK</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap">
-        <div style="background:#0f2030;border-radius:8px;padding:12px 16px;font-size:13px"><span style="color:var(--signal);font-weight:700">Obsidian Market</span><br><span style="color:var(--muted)">12 pages · vendors + forums</span></div>
-        <div style="background:#0f2030;border-radius:8px;padding:12px 16px;font-size:13px"><span style="color:var(--signal);font-weight:700">RedGate Exchange</span><br><span style="color:var(--muted)">12 pages · vendors + forums</span></div>
-        <div style="background:#0f2030;border-radius:8px;padding:12px 16px;font-size:13px"><span style="color:var(--signal);font-weight:700">Silver Circuit</span><br><span style="color:var(--muted)">12 pages · vendors + forums</span></div>
-        <div style="background:#0f2030;border-radius:8px;padding:12px 16px;font-size:13px"><span style="color:var(--signal);font-weight:700">NightBay Trading</span><br><span style="color:var(--muted)">12 pages · vendors + forums</span></div>
-        <div style="background:#0f2030;border-radius:8px;padding:12px 16px;font-size:13px"><span style="color:var(--signal);font-weight:700">Cinder Board</span><br><span style="color:var(--muted)">13 pages · vendors + forums</span></div>
-      </div>
-      <div style="margin-top:14px;font-size:13px;color:var(--muted)">61 pages total · 5 target personas seeded naturally across different markets · hundreds of decoy vendor listings and forum threads</div>
-    </div>
-  </div>
-</section>
 
-<!-- ============ EXPORTS ============ -->
-<section class="sec" id="exports">
-  <div class="wrap">
-    <span class="kicker rv">Evidence Exports</span>
-    <h2 class="disp split">Three export formats. One click.</h2>
-    <p class="intro rv">Every SUTRADHAR analysis can be exported in three formats — a court-ready PDF, a machine-readable JSON for integration, and a CSV for analyst spreadsheets. All include every signal, every score, and a cryptographic audit trail.</p>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:32px" class="rv">
-
-      <!-- PDF -->
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column">
-        <div style="font-size:36px;margin-bottom:12px">📄</div>
-        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;margin-bottom:10px">Court-Ready PDF</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7;flex:1">A full forensic case file structured for submission to an Indian court or agency. Six sections:</div>
-        <ul style="list-style:none;padding:0;margin:12px 0;display:flex;flex-direction:column;gap:6px;flex:1">
-          <li style="font-size:13px;color:var(--muted);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">·</span>Cover page with "AUTHORIZED USE ONLY" classification</li>
-          <li style="font-size:13px;color:var(--muted);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">·</span>Executive summary (identities resolved, confidence)</li>
-          <li style="font-size:13px;color:var(--muted);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">·</span>Legal basis — BSA Sec 63, IT Act 65B, ISO/IEC 27037</li>
-          <li style="font-size:13px;color:var(--muted);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">·</span>Methodology — all 8 signal theories cited</li>
-          <li style="font-size:13px;color:var(--muted);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">·</span>Per-persona evidence table (OPSEC, evasion, crypto)</li>
-          <li style="font-size:13px;color:var(--muted);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">·</span>Audit trail — SHA-256 chain, "CHAIN INTEGRITY VERIFIED"</li>
-          <li style="font-size:13px;color:var(--muted);padding-left:16px;position:relative"><span style="position:absolute;left:0;color:var(--signal)">·</span>Analyst certification and signature block</li>
-        </ul>
-        <div style="font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">⤓ Download from prototype → Export case file (PDF)</div>
-      </div>
-
-      <!-- JSON -->
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column">
-        <div style="font-size:36px;margin-bottom:12px">{ }</div>
-        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;margin-bottom:10px">Machine-Readable JSON</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:12px">Structured output for integration with I4C dashboards, SIEM systems, or downstream enrichment pipelines. Full schema:</div>
-        <div style="background:#0a1525;border-radius:8px;padding:14px;font-family:monospace;font-size:12px;color:#7c9ac9;line-height:1.8;flex:1">
-          {<br>
-          &nbsp;&nbsp;"case_id": "20260910-0855",<br>
-          &nbsp;&nbsp;"attributions": [{<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;"aliases": ["shadowfox","nightcrawler"],<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;"confidence": 0.85,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;"signals": {<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"stylometry": 0.51,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cognitive": 0.72,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"temporal": 0.96,<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"persona_reuse": ["@handle"],<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"crypto_cashout": "Binance"<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-          &nbsp;&nbsp;}],<br>
-          &nbsp;&nbsp;"audit_chain_valid": true<br>
-          }
-        </div>
-        <div style="margin-top:12px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">⤓ Download from prototype → ⤓ JSON</div>
-      </div>
-
-      <!-- CSV -->
-      <div style="background:#131f33;border:1px solid rgba(236,231,219,.1);border-radius:12px;padding:24px;display:flex;flex-direction:column">
-        <div style="font-size:36px;margin-bottom:12px">📊</div>
-        <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;margin-bottom:10px">Analyst CSV</div>
-        <div style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:12px">One row per attributed pair. Flat format for Excel / Google Sheets triage. 12 columns:</div>
-        <div style="background:#0a1525;border-radius:8px;padding:14px;font-family:monospace;font-size:11px;color:#7c9ac9;line-height:1.9;flex:1;overflow-x:auto">
-          alias_a, alias_b,<br>
-          confidence_pct,<br>
-          signals_matched,<br>
-          shared_identifiers,<br>
-          crypto_cashout,<br>
-          infra_clearnet_ip,<br>
-          peak_window_a,<br>
-          peak_window_b,<br>
-          evasion_a, evasion_b,<br>
-          cognitive_sim
-        </div>
-        <div style="margin-top:12px;font-size:13px;color:var(--muted);line-height:1.6">Each row is one confirmed link between two aliases. Filter by <span style="color:var(--paper)">confidence_pct &gt; 75</span> for court-viable leads. Sort by <span style="color:var(--paper)">evasion</span> to prioritise trained operators.</div>
-        <div style="margin-top:10px;font-size:12px;font-family:'Archivo',sans-serif;color:#5fd89a;font-weight:700">⤓ Download from prototype → ⤓ CSV</div>
-      </div>
-
-    </div>
-
-    <!-- Encryption note -->
-    <div style="margin-top:24px;background:#131f33;border:1px solid rgba(242,169,59,.2);border-radius:12px;padding:24px" class="rv">
-      <div style="font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;letter-spacing:2px;color:var(--signal);margin-bottom:12px">END-TO-END DATA PROTECTION</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
-        <div style="font-size:14px;color:var(--muted);line-height:1.7"><strong style="color:var(--paper)">At rest:</strong> AES-256 encryption (Fernet: AES-CBC + HMAC-SHA256). Key derived via PBKDF2-HMAC-SHA256 at 390,000 iterations. Stored ciphertext is unreadable without the operator passphrase.</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7"><strong style="color:var(--paper)">In transit:</strong> TLS 1.3 via the Railway reverse proxy. All API calls HTTPS-only. No plaintext transmission.</div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.7"><strong style="color:var(--paper)">Tamper detection:</strong> Any modification to the ciphertext fails HMAC authentication and is rejected immediately — not silently accepted. Live proof in the prototype under "Prove Encryption".</div>
+  <section class="sec" id="ps">
+    <div class="wrap">
+      <span class="kicker rv">PS SIH26151 · NTRO</span>
+      <h2 class="disp split">Every requirement, implemented</h2>
+      <p class="intro rv">Each requirement in the problem statement is built and demoable in the live prototype. Nothing is left on the roadmap.</p>
+      <div class="signals" style="margin-top:34px">
+        <div class="sig rv"><div class="n">01 · AI persona correlation</div><div class="d">RandomForest trained on 58,240 labeled pairs, 94% accuracy on a 14-author benchmark. Multi-signal fusion into one score.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">02 · Stylometric identification</div><div class="d">19-feature writing fingerprint: n-grams, function words, hapax legomena, sentence variance, lexical richness.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">03 · Behavioural profiling</div><div class="d">Cognitive fingerprint links rebranded personas even after AI-rephrasing. The most novel signal in the system.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">04 · Infrastructure correlation</div><div class="d">Four misconfig classes match a Tor hidden service to a clearnet host and real IP.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">05 · Autonomous monitoring</div><div class="d">Background scheduler polls sources and auto-ingests new personas with source, category, and timestamp.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">06 · Court-admissible evidence</div><div class="d">SHA-256 hash-chained audit log, PDF citing BSA Sec 63 / IT Act 65B, AES-256 encryption at rest.</div><span class="flag live">Live</span></div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============ BUILD / PROTOTYPE ============ -->
-<section class="sec" id="build">
-  <div class="wrap">
-    <span class="kicker rv">Try it — live</span>
-    <h2 class="disp split">Run the prototype</h2>
-    <p class="intro rv">The working prototype ships all 8 live signals — stylometry, cognitive fingerprint, temporal, persona reuse, OPSEC, crypto flow, infrastructure, and evasion meta-signal — plus a 3D knowledge graph, live crawler, visual match, offline AI brief, AES-256 encryption proof, and a court-ready case file.</p>
-    <div class="cta-row rv" style="margin-top:26px">
-      <a class="btn btn-solid magnetic" href="https://web-production-9880e1.up.railway.app/" target="_blank" rel="noopener">&#9654; Open Live Prototype</a>
-      <a class="btn btn-ghost magnetic" href="#" id="ghLink">View on GitHub</a>
+  <section class="sec" id="fbi">
+    <div class="wrap">
+      <span class="kicker rv">Real-world validation</span>
+      <h2 class="disp split">How the FBI caught Silk Road</h2>
+      <p class="intro rv">The 2013 Silk Road takedown is the most documented dark-web de-anonymization in history. Every manual signal the FBI used over two years, SUTRADHAR applies automatically in minutes.</p>
+      <div class="signals" style="margin-top:34px">
+        <div class="sig rv"><div class="n">Stylometry match</div><div class="d">A 2011 forum post by "altoid" matched the writing style of Dread Pirate Roberts. FBI linguists matched the idiolect, exactly what signal 01 automates.</div><span class="flag live">Signal 01</span></div>
+        <div class="sig rv"><div class="n">Persona reuse</div><div class="d">The "altoid" account used rossulbricht@gmail.com as a contact in one post, a direct identifier linking alias to real name. One slip, caught years later.</div><span class="flag live">Signal 04</span></div>
+        <div class="sig rv"><div class="n">Infrastructure leak</div><div class="d">A misconfigured Silk Road login page leaked a real IP instead of routing through Tor. The direct lead to the server location.</div><span class="flag live">Signal 07</span></div>
+        <div class="sig rv"><div class="n">Crypto flow</div><div class="d">Bitcoin commission wallets traced through the blockchain. 144,000 BTC seized on arrest, via UTXO analysis.</div><span class="flag live">Signal 06</span></div>
+      </div>
+      <p class="rv" style="color:var(--muted);font-size:15px;margin-top:22px">What took the FBI two years across multiple agencies, SUTRADHAR runs simultaneously and fuses into one confidence score with a court-ready case file. Sources: U.S. v. Ulbricht (2015), FBI criminal complaint, DEA case documentation.</p>
     </div>
-    <p class="rv" style="color:var(--muted);font-size:15px;margin-top:20px">Live at <a href="https://web-production-9880e1.up.railway.app/" target="_blank" style="color:var(--slate)">web-production-9880e1.up.railway.app</a> &nbsp;·&nbsp; local: <span style="color:var(--paper)">pip install -r requirements.txt</span> then <span style="color:var(--paper)">python app.py</span> → localhost:8000</p>
-  </div>
-</section>
+  </section>
 
-</div><!-- /.sheet -->
+  <section class="sec" id="crawling">
+    <div class="wrap">
+      <span class="kicker rv">Live crawling</span>
+      <h2 class="disp split">Real crawling, safe target</h2>
+      <p class="intro rv">SUTRADHAR performs genuine HTTP crawling: real requests, real HTML parsing, real breadth-first link discovery across 61 pages and 5 marketplaces. The target is a simulated dark-web network we built ourselves, not a live .onion site.</p>
+      <div class="signals" style="margin-top:34px">
+        <div class="sig rv"><div class="n">What is real</div><div class="d">Real HTTP requests, real HTML parsing, real link traversal, 61 pages across 5 markets, polite delay, audit-logged. Discovered personas feed straight into the pipeline.</div><span class="flag live">Genuine</span></div>
+        <div class="sig rv"><div class="n">Why a replica</div><div class="d">Crawling a live .onion risks unauthorized-access charges (IT Act 43), accidental exposure to illegal content, and evidence tainted outside lawful process. A replica keeps the demo legal.</div><span class="flag live">Legal by design</span></div>
+        <div class="sig rv"><div class="n">Production path</div><div class="d">In deployment, NTRO points the same crawler at authorized OSINT feeds or court-sanctioned targets. The data-source is a config change; the architecture is identical.</div><span class="flag live">Config, not rebuild</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="exports">
+    <div class="wrap">
+      <span class="kicker rv">Evidence exports</span>
+      <h2 class="disp split">Three formats, one click</h2>
+      <p class="intro rv">Every analysis exports as a court-ready PDF, a machine-readable JSON for integration, and a CSV for analyst spreadsheets. All include every signal, every score, and a cryptographic audit trail.</p>
+      <div class="signals" style="margin-top:34px">
+        <div class="sig rv"><div class="n">Court-ready PDF</div><div class="d">Six sections: cover with classification, executive summary, legal basis (BSA Sec 63, IT Act 65B, ISO/IEC 27037), methodology, per-persona evidence table, and SHA-256 audit trail with certification.</div><span class="flag live">Download</span></div>
+        <div class="sig rv"><div class="n">Machine-readable JSON</div><div class="d">Structured output for I4C dashboards, SIEM systems, or enrichment pipelines. Full attribution schema with per-signal scores and audit-chain validity.</div><span class="flag live">Download</span></div>
+        <div class="sig rv"><div class="n">Analyst CSV</div><div class="d">One row per attributed pair, 12 columns. Filter by confidence over 75% for court-viable leads; sort by evasion to prioritise trained operators.</div><span class="flag live">Download</span></div>
+      </div>
+      <p class="rv" style="color:var(--muted);font-size:15px;margin-top:22px"><b style="color:var(--paper)">End-to-end protection.</b> At rest: AES-256 (Fernet, PBKDF2-HMAC-SHA256 at 390,000 iterations), ciphertext unreadable without the passphrase. In transit: TLS 1.3. Any tampering fails HMAC authentication and is rejected, never silently accepted. Live proof in the prototype.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="build">
+    <div class="wrap">
+      <span class="kicker rv">Try it</span>
+      <h2 class="disp split">Run the prototype</h2>
+      <p class="intro rv">The working prototype ships all eight live signals, a 3D knowledge graph, live crawler, visual match, offline AI brief, AES-256 encryption proof, and a court-ready case file.</p>
+      <div class="cta-row rv" style="margin-top:26px">
+        <a class="btn btn-solid magnetic" href="https://web-production-9880e1.up.railway.app/" target="_blank" rel="noopener">Open live prototype</a>
+        <a class="btn btn-ghost magnetic" href="#" id="ghLink">View on GitHub</a>
+      </div>
+      <p class="rv" style="color:var(--muted);font-size:15px;margin-top:20px">Live at <a href="https://web-production-9880e1.up.railway.app/" target="_blank" style="color:var(--slate)">web-production-9880e1.up.railway.app</a> &nbsp;·&nbsp; local: <span style="color:var(--paper)">pip install -r requirements.txt</span> then <span style="color:var(--paper)">python app.py</span></p>
+    </div>
+  </section>
 </div>
 
 <footer class="foot">
@@ -685,10 +513,10 @@ if(reduce){
 }
 
 
-// ---- 3-dot dropdown ----
-function toggleDD(){var m=document.getElementById('ddMenu');m.style.display=m.style.display==="block"?"none":"block";}
-function closeDD(){document.getElementById('ddMenu').style.display="none";}
-document.addEventListener('click',function(e){var w=document.getElementById('ddWrap');if(w&&!w.contains(e.target))closeDD();});
+function toggleDD(e){if(e)e.stopPropagation();var m=document.getElementById("ddMenu");m.style.display=m.style.display==="block"?"none":"block";}
+function closeDD(){var m=document.getElementById("ddMenu");if(m)m.style.display="none";}
+document.addEventListener("click",function(e){var w=document.getElementById("ddWrap");if(w&&!w.contains(e.target))closeDD();});
+var _gh=document.getElementById("ghLinkNav");if(_gh)_gh.href="https://github.com/hetanshdoshi25-max/sutradhar";
 </script>
 </body>
 </html>
