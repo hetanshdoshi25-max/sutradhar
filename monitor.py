@@ -67,7 +67,9 @@ def _now():
 
 def _scan_once():
     """One polling cycle: pick a source, reveal the next feed item (if any)
-    as a 'newly discovered' persona, and log the action."""
+    as a 'newly discovered' persona, persist it to the database, and log it.
+    Persisting makes the autonomous mode feed the analytical front-end - the
+    discovered actor survives restarts and becomes queryable by timeline."""
     with _lock:
         source = random.choice(SOURCES)
         _state["last_scan"] = _now()
@@ -86,10 +88,29 @@ def _scan_once():
             }
             _state["discovered"].append(item)
 
+    if item:
+        try:
+            import storage
+            storage.init_db()
+            c = storage._conn()
+            from datetime import datetime, timezone
+            now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+            exists = c.execute("SELECT id FROM actors WHERE alias=?", (item["alias"],)).fetchone()
+            if not exists:
+                c.execute("""INSERT INTO actors (alias, site, source, category,
+                             identifiers, cognitive_traits, last_scan, first_seen)
+                             VALUES (?,?,?,?,?,?,?,?)""",
+                          (item["alias"], item["site"], source["name"], source["category"],
+                           "[]", "[]", now, now))
+                c.commit()
+            c.close()
+        except Exception:
+            pass
+
     audit_log.record(
         "autonomous_scan",
         f"polled '{source['name']}' ({source['category']})"
-        + (f" - discovered new persona '{item['alias']}'" if item else " - no new activity"),
+        + (f" - discovered '{item['alias']}', persisted to DB" if item else " - no new activity"),
     )
     return item
 

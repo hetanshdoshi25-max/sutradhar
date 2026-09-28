@@ -191,6 +191,20 @@
     <button class="ghost" onclick="proveEncryption()" id="encBtn">🔒 Prove Encryption</button>
     <div id="encResults"></div>
 
+    <div class="sec-label">Actor Database <span class="note">(timeline query)</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <select id="dbCat" style="flex:1;background:rgba(0,0,0,.25);border:1px solid var(--line);color:var(--text);border-radius:5px;padding:8px;font-size:12px">
+        <option value="">All categories</option>
+        <option>Financial / crypto</option>
+        <option>Cyber / intrusion</option>
+        <option>Marketplace vendor</option>
+        <option>OPSEC-aware operator</option>
+        <option>Unclassified</option>
+      </select>
+      <button class="ghost" style="width:auto;padding:8px 14px;margin:0" onclick="queryDB()">Query</button>
+    </div>
+    <div id="dbResults"></div>
+
     <div class="sec-label">Audit Log <span class="note">(chain-of-custody)</span></div>
     <button class="ghost" onclick="loadAudit()">↻ Refresh log</button>
     <div id="auditResults"></div>
@@ -569,7 +583,10 @@ function showExposure(nodeId){
   const box=document.getElementById("evidence");
   const colors={Critical:"#f2555a",High:"#fbbf24",Medium:"#22d3ee",Low:"#8a94ad",None:"#8a94ad"};
   const c=colors[ex.level]||"#8a94ad";
-  let html=`<h3>${n.alias} — OPSEC exposure</h3>`;
+  let html=`<h3>${n.alias} - OPSEC exposure</h3>`;
+  if(n.category){
+    html+=`<div style="font-size:10px;color:var(--mute);margin-bottom:6px">${esc(n.category)}${n.last_scan?" · last scan "+esc((n.last_scan||"").slice(0,10)):""}${n.source?" · "+esc(n.source):""}</div>`;
+  }
   html+=`<div style="display:inline-block;font-size:11px;font-weight:700;color:${c};border:1px solid ${c};border-radius:20px;padding:3px 10px;margin-bottom:8px">${ex.level} risk</div>`;
   if(!ex.items.length){
     html+=`<div style="color:var(--mute);font-size:12px">No identifiers or contact details leaked in this persona's text.</div>`;
@@ -758,6 +775,27 @@ async function proveEncryption(){
       <div style="display:flex;justify-content:space-between;font-size:10.5px;margin-top:4px"><span style="color:var(--mute)">Tamper attempt</span><span style="color:var(--good);font-weight:700">${d.tamper_attempt_detected?'✓ rejected':'✗ accepted'}</span></div>`;
     loadAudit();
   }catch(e){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Proof failed.</div>`;}
+}
+
+async function queryDB(){
+  const cat=document.getElementById("dbCat").value;
+  const box=document.getElementById("dbResults");
+  box.innerHTML=`<div style="color:var(--mute);font-size:11px">Querying database...</div>`;
+  try{
+    const url="/db/actors"+(cat?("?category="+encodeURIComponent(cat)):"");
+    const r=await fetch(url); const d=await r.json();
+    const stats=await (await fetch("/db/stats")).json();
+    if(!d.actors||!d.actors.length){box.innerHTML=`<div style="color:var(--mute);font-size:11px">No actors stored yet. Run an analysis first (${stats.total_actors||0} in DB).</div>`;return;}
+    let h=`<div style="font-size:10px;color:var(--slate);letter-spacing:1px;margin-bottom:6px">${d.actors.length} ACTOR(S) · ${stats.total_actors} TOTAL IN DB</div>`;
+    d.actors.slice(0,12).forEach(a=>{
+      h+=`<div style="background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:5px 0;font-size:11px">
+        <div style="display:flex;justify-content:space-between"><b style="color:var(--text)">${esc(a.alias)}</b><span style="color:var(--amber);font-size:10px">${esc(a.category||"")}</span></div>
+        <div style="color:var(--mute);font-size:10px;margin-top:2px">${esc(a.site||a.source||"")} · scan ${esc((a.last_scan||"").slice(0,10))}</div>
+        ${a.opsec_level?`<div style="color:var(--mute);font-size:9.5px;margin-top:2px">OPSEC ${esc(a.opsec_level)}${a.evasion_level?" · evasion "+esc(a.evasion_level):""}</div>`:""}
+      </div>`;
+    });
+    box.innerHTML=h;
+  }catch(e){box.innerHTML=`<div style="color:var(--amber);font-size:11px">Query failed.</div>`;}
 }
 
 async function loadAudit(){

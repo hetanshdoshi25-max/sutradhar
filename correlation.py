@@ -53,8 +53,30 @@ def build_graph(personas, threshold=0.55):
     eng = StylometryEngine().fit(texts)
     n = len(texts)
 
+    from datetime import datetime, timezone
+    _scan = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    def _category(p):
+        """Classify an actor by the strongest identifier / behavioural signal
+        present - a coarse threat-category tag the PS asks to store per actor."""
+        t = (p.get("text", "") or "").lower()
+        idset = extract_identifiers(p.get("text", ""))
+        kinds = {k.split(":", 1)[0] for k in idset}
+        if kinds & {"btc", "eth", "monero"}:
+            return "Financial / crypto"
+        if any(w in t for w in ("exploit", "0day", "rce", "botnet", "ransomware", "malware")):
+            return "Cyber / intrusion"
+        if any(w in t for w in ("gram", "kg", "pills", "vendor", "stock", "shipping")):
+            return "Marketplace vendor"
+        if kinds & {"pgp", "session", "tox", "jabber"}:
+            return "OPSEC-aware operator"
+        return "Unclassified"
+
     nodes = [
         {"id": i, "alias": p["alias"], "site": p.get("site", ""),
+         "category": _category(p),
+         "last_scan": p.get("last_scan", _scan),
+         "source": p.get("source", p.get("site", "manual")),
          "exposure": exposure_profile(p.get("text", "")),
          "crypto": crypto_trail(p.get("text", "")),
          "infra": infra_trail(p.get("text", "")),
@@ -146,7 +168,11 @@ def build_graph(personas, threshold=0.55):
                 "confidence": round(sum(linkscores) / len(linkscores), 3),
             })
 
-    return {"nodes": nodes, "edges": edges, "attributions": attributions}
+    from trust_links import trust_links as _tl, trust_summary as _ts
+    tedges = _tl(personas)
+    tsummary = _ts(tedges, nodes)
+    return {"nodes": nodes, "edges": edges, "attributions": attributions,
+            "trust_edges": tedges, "trust_summary": tsummary}
 
 
 if __name__ == "__main__":

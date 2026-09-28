@@ -13,6 +13,8 @@ def build_json_export(graph, threshold, case_id=None):
         "nodes": graph["nodes"],
         "edges": graph["edges"],
         "attributions": graph["attributions"],
+        "trust_edges": graph.get("trust_edges", []),
+        "trust_summary": graph.get("trust_summary", {}),
     }
     return json.dumps(payload, indent=2).encode("utf-8")
 
@@ -38,7 +40,31 @@ def build_csv_export(graph):
         w.writerow([na["alias"], nb["alias"], round(e["score"] * 100, 1), "|".join(signals),
                    shared, cashout, clear_ip, pw[0], pw[1],
                    na.get("evasion", {}).get("level", ""), nb.get("evasion", {}).get("level", "")])
+
+    # --- per-actor profile block (PS: actor profiles, category, last scan, source) ---
+    w.writerow([])
+    w.writerow(["ACTOR PROFILES"])
+    w.writerow(["alias", "category", "site", "source", "opsec_level",
+               "evasion_level", "identifiers", "last_scan"])
+    for n in graph["nodes"]:
+        idents = "|".join(sorted({i for i in _node_idents(graph, n)}))
+        w.writerow([n["alias"], n.get("category", ""), n.get("site", ""),
+                   n.get("source", ""), n.get("exposure", {}).get("level", ""),
+                   n.get("evasion", {}).get("level", ""), idents, n.get("last_scan", "")])
     return buf.getvalue().encode("utf-8")
+
+
+def _node_idents(graph, node):
+    """Collect identifier strings visible in a node's crypto/infra evidence."""
+    out = set()
+    for c in (node.get("crypto") or []):
+        w = c.get("wallet") or c.get("address")
+        if w:
+            out.add(w)
+    for inf in (node.get("infra") or []):
+        if inf.get("onion"):
+            out.add(inf["onion"])
+    return out
 
 
 if __name__ == "__main__":

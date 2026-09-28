@@ -259,13 +259,14 @@ def build_report_pdf(graph, personas, threshold, case_id=None):
         f"The following {len(nodes)} persona(s) were submitted for analysis. Word count reflects the "
         f"volume of text available per persona; the OPSEC risk rating reflects the outcome of the "
         f"exposure-assessment process described in Section 3.4.", st["Body"]))
-    prows = [["#", "Alias", "Site / Source", "Words", "OPSEC Risk", "Evasion"]]
+    prows = [["#", "Alias", "Category", "Site / Source", "OPSEC", "Evasion", "Last Scan"]]
     for i, n in enumerate(nodes):
-        words = len((personas[i].get("text", "").split()))
         risk = n.get("exposure", {}).get("level", "-")
         evasion = n.get("evasion", {}).get("level", "-")
-        prows.append([str(i + 1), n["alias"], n.get("site", "") or "-", str(words), risk, evasion])
-    pt = Table(prows, colWidths=[8 * mm, 32 * mm, 38 * mm, 16 * mm, 24 * mm, 22 * mm])
+        cat = n.get("category", "-")
+        scan = (n.get("last_scan", "-") or "-")[:10]
+        prows.append([str(i + 1), n["alias"], cat, n.get("site", "") or "-", risk, evasion, scan])
+    pt = Table(prows, colWidths=[7 * mm, 26 * mm, 30 * mm, 30 * mm, 18 * mm, 20 * mm, 22 * mm])
     pt.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), NAVY), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
         ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"), ("FONTSIZE", (0, 0), (-1, -1), 9),

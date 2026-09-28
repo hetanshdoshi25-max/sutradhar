@@ -103,6 +103,11 @@ def analyze(req: AnalyzeRequest):
         return {"nodes": [], "edges": [], "attributions": [],
                 "error": "Add at least two personas with text."}
     result = build_graph(personas, threshold=req.threshold)
+    try:
+        import storage
+        storage.save_graph(result, personas)
+    except Exception:
+        pass  # persistence is best-effort; never block an analysis
     audit_log.record("analyze",
         f"{len(personas)} personas, threshold {req.threshold}, "
         f"{len(result.get('attributions', []))} attribution(s) found")
@@ -241,6 +246,21 @@ def crawl_start():
 def crawl_status():
     return {"running": _crawl_state["running"], "last_result": _crawl_state["result"],
             "page_log": _crawl_state["pages"]}
+
+
+@app.get("/db/actors")
+def db_actors(category: str = None, since: str = None, until: str = None):
+    """Analytical front-end: query stored actors across a timeline / category.
+    Backs the 'query the database across a chosen timeline' requirement."""
+    import storage
+    return {"actors": storage.query_actors(category=category, since=since, until=until)}
+
+
+@app.get("/db/stats")
+def db_stats_ep():
+    """Storage overview: total actors, links, and category breakdown."""
+    import storage
+    return storage.db_stats()
 
 
 @app.get("/")
