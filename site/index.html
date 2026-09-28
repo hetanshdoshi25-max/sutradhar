@@ -255,6 +255,10 @@
         <div class="sig rv"><div class="n">04 · Infrastructure correlation</div><div class="d">Four misconfig classes match a Tor hidden service to a clearnet host and real IP.</div><span class="flag live">Live</span></div>
         <div class="sig rv"><div class="n">05 · Autonomous monitoring</div><div class="d">Background scheduler polls sources and auto-ingests new personas with source, category, and timestamp.</div><span class="flag live">Live</span></div>
         <div class="sig rv"><div class="n">06 · Court-admissible evidence</div><div class="d">SHA-256 hash-chained audit log, PDF citing BSA Sec 63 / IT Act 65B, AES-256 encryption at rest.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">07 · Relationship graph + trust links</div><div class="d">Actors mapped across marketplaces by handles, PGP keys, wallets, and trust links: who vouches for whom, who flags a scammer, extracted from forum text.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">08 · Persistent storage</div><div class="d">Every actor and link saved to a SQLite database that survives restarts. Actor profiles, identifiers, category, source, last-scan date, attribution confidence.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">09 · Timeline query front-end</div><div class="d">Analytical panel to query the stored database by category or across a chosen date range. The autonomous mode feeds it continuously.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">10 · CSV / JSON / report export</div><div class="d">Result set exported in all three formats: court-ready PDF, machine-readable JSON, analyst CSV, each with per-actor profiles.</div><span class="flag live">Live</span></div>
       </div>
     </div>
   </section>
@@ -295,7 +299,9 @@
       <div class="signals" style="margin-top:34px">
         <div class="sig rv"><div class="n">Court-ready PDF</div><div class="d">Six sections: cover with classification, executive summary, legal basis (BSA Sec 63, IT Act 65B, ISO/IEC 27037), methodology, per-persona evidence table, and SHA-256 audit trail with certification.</div><span class="flag live">Download</span></div>
         <div class="sig rv"><div class="n">Machine-readable JSON</div><div class="d">Structured output for I4C dashboards, SIEM systems, or enrichment pipelines. Full attribution schema with per-signal scores and audit-chain validity.</div><span class="flag live">Download</span></div>
-        <div class="sig rv"><div class="n">Analyst CSV</div><div class="d">One row per attributed pair, 12 columns. Filter by confidence over 75% for court-viable leads; sort by evasion to prioritise trained operators.</div><span class="flag live">Download</span></div>
+        <div class="sig rv"><div class="n">Analyst CSV</div><div class="d">One row per attributed pair plus a per-actor profile block: alias, category, source, OPSEC and evasion level, identifiers, last-scan date.</div><span class="flag live">Download</span></div>
+        <div class="sig rv"><div class="n">Persistent database</div><div class="d">Every analysis auto-saves to SQLite. Query stored actors by category or timeline; the autonomous mode keeps feeding it new actors on its own.</div><span class="flag live">Live</span></div>
+        <div class="sig rv"><div class="n">Trust-graph mapping</div><div class="d">Vouch, scam-flag, and co-mention edges between actors, giving each a Trusted / Flagged / Neutral standing that a rebranded persona carries over.</div><span class="flag live">Live</span></div>
       </div>
       <p class="rv" style="color:var(--muted);font-size:15px;margin-top:22px"><b style="color:var(--paper)">End-to-end protection.</b> At rest: AES-256 (Fernet, PBKDF2-HMAC-SHA256 at 390,000 iterations), ciphertext unreadable without the passphrase. In transit: TLS 1.3. Any tampering fails HMAC authentication and is rejected, never silently accepted. Live proof in the prototype.</p>
     </div>
